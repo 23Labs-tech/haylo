@@ -1,0 +1,31 @@
+{
+  "id": "88b280e7-37a3-4d56-885e-0026562afe67",
+  "orgId": "32139cda-6053-408f-b85b-378751362b62",
+  "name": "Holy Spa Assistant",
+  "voice": {
+    "voiceId": "nova",
+    "provider": "openai"
+  },
+  "createdAt": "2026-03-01T10:07:52.842Z",
+  "updatedAt": "2026-03-01T11:18:58.565Z",
+  "model": {
+    "model": "gpt-4o",
+    "toolIds": [
+      "775ffe36-e032-470d-b70f-7a529c50180b"
+    ],
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful AI receptionist named Sasaa working for Holy Spa at the Downtown Location branch.\n\nKnowledge Base:\nWe offer deep tissue, swedish, and hot stone massages. Prices start at $89 for 60 minutes. We have a 24-hour cancellation policy.\n\nOperating Hours:\nMonday - Friday: 9 AM to 8 PM\nSaturday: 10 AM to 6 PM\nSunday: 9 to 9 pm\n\nAlways be polite and professional. Admin email is hello@serenityspa.com and phone is +1 9916717563."
+      }
+    ],
+    "provider": "openai"
+  },
+  "firstMessage": "Hello! Thank you for calling holy spa. My name is Sasaa. How may I help you today?",
+  "transcriber": {
+    "model": "flux-general-en",
+    "language": "en",
+    "provider": "deepgram"
+  },
+  "isServerUrlSecretSet": false
+}
