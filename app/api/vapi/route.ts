@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function GET() {
     try {
@@ -76,14 +77,20 @@ export async function POST(request: Request) {
         }
 
         if (!profile) {
-            const { data: newProfile, error: insertError } = await supabase
+            const supabaseAdmin = createSupabaseClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            );
+
+            const { data: newProfile, error: insertError } = await supabaseAdmin
                 .from('profiles')
                 .insert([{ id: user.id, email: user.email }])
                 .select()
                 .single();
 
             if (insertError) {
-                return NextResponse.json({ error: 'Failed to create profile.' }, { status: 500 });
+                console.error("Profile insert error:", insertError);
+                return NextResponse.json({ error: `Failed to create profile: ${insertError.message}` }, { status: 500 });
             }
             profile = newProfile;
         }
