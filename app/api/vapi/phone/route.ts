@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         const vapiRes = await fetch(`https://api.vapi.ai/phone-number/buy`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
+                'Authorization': `Bearer ${process.env.VAPI_PUBLIC_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({

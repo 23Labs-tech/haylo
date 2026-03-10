@@ -114,7 +114,7 @@ export async function POST(request: Request) {
             const vapiCreateRes = await fetch(`https://api.vapi.ai/assistant`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
+                    'Authorization': `Bearer ${process.env.VAPI_PUBLIC_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(vapiPayload)
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
             const vapiUpdateRes = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
+                    'Authorization': `Bearer ${process.env.VAPI_PUBLIC_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(vapiPayload)
