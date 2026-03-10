@@ -31,7 +31,7 @@ export async function GET() {
             .from('profiles')
             .select('vapi_assistant_id, clinic_name, settings_json')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (profileError || !profile) {
             return NextResponse.json({

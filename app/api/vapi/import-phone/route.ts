@@ -14,7 +14,7 @@ export async function POST(request: Request) {
             .from('profiles')
             .select('vapi_assistant_id, vapi_phone_number, clinic_name')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (!profile?.vapi_assistant_id) {
             return NextResponse.json({ error: 'Please save your Settings first to generate an Assistant before importing a phone number.' }, { status: 400 });

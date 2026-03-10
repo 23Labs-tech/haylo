@@ -29,7 +29,7 @@ export async function GET() {
             .from('profiles')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         return NextResponse.json(profile || {});
     } catch (e: unknown) {
@@ -64,14 +64,28 @@ export async function POST(request: Request) {
         }
 
         // 2. Fetch the user's profile from the Supabase database
-        const { data: profile, error: profileError } = await supabase
+        // 2. Fetch the user's profile from the Supabase database
+        let { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (profileError) {
-            return NextResponse.json({ error: 'Profile not found.' }, { status: 400 });
+            return NextResponse.json({ error: 'Database error fetching profile.' }, { status: 500 });
+        }
+
+        if (!profile) {
+            const { data: newProfile, error: insertError } = await supabase
+                .from('profiles')
+                .insert([{ id: user.id, email: user.email }])
+                .select()
+                .single();
+
+            if (insertError) {
+                return NextResponse.json({ error: 'Failed to create profile.' }, { status: 500 });
+            }
+            profile = newProfile;
         }
 
         const { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel } = await request.json();
