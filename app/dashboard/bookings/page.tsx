@@ -145,7 +145,39 @@ export default function BookingsPage() {
                         </div>
                     </div>
                     <button
-                        onClick={() => window.location.href = '/api/auth/google-calendar?next=/dashboard/bookings'}
+                        onClick={async () => {
+                            try {
+                                const { createClient: createBrowserClient } = await import('@/utils/supabase/client');
+                                const supabase = createBrowserClient();
+
+                                // Use linkIdentity to connect Google to the EXISTING logged-in user
+                                // This does NOT create a new account — it just adds Google as a linked identity
+                                const { data, error } = await supabase.auth.linkIdentity({
+                                    provider: 'google',
+                                    options: {
+                                        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/bookings`,
+                                        scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+                                        queryParams: {
+                                            access_type: 'offline',
+                                            prompt: 'consent',
+                                        },
+                                    },
+                                });
+
+                                if (error) {
+                                    console.error('Google link error:', error);
+                                    alert('Failed to connect Google Calendar: ' + error.message);
+                                    return;
+                                }
+
+                                if (data?.url) {
+                                    window.location.href = data.url;
+                                }
+                            } catch (err) {
+                                console.error('Error connecting Google:', err);
+                                alert('Network error. Please try again.');
+                            }
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
