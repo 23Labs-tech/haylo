@@ -1,11 +1,36 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 type FormMode = 'signin' | 'signup' | 'forgot';
+
+// How long (seconds) the user must wait before requesting another reset email
+const RESET_COOLDOWN_SECONDS = 60;
+
+/** Maps raw Supabase/API error messages to friendly user-facing messages */
+function friendlyError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes('rate limit') || lower.includes('too many')) {
+    return 'You have requested too many reset links. Please wait a minute before trying again.';
+  }
+  if (lower.includes('invalid login') || lower.includes('invalid credentials')) {
+    return 'Incorrect email or password. Please try again.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'Your email address has not been confirmed. Please check your inbox.';
+  }
+  if (lower.includes('user not found') || lower.includes('no user')) {
+    return 'No account found with that email address.';
+  }
+  if (lower.includes('network') || lower.includes('fetch')) {
+    return 'Network error. Please check your connection and try again.';
+  }
+  // Fallback: return as-is but capitalise first letter
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -18,6 +43,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Cooldown timer for the forgot-password form
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
@@ -29,31 +58,51 @@ export default function LoginPage() {
     checkSession();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
+  /** Starts a countdown timer after a reset email is sent */
+  const startCooldown = () => {
+    setCooldown(RESET_COOLDOWN_SECONDS);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const switchMode = (newMode: FormMode) => {
     setMode(newMode);
     setError(null);
     setSuccess(null);
   };
 
+  // ─── Sign In ────────────────────────────────────────────────────────────────
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccess(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(friendlyError(error.message));
       setLoading(false);
     } else {
       router.push('/dashboard');
     }
   };
 
+  // ─── Sign Up ────────────────────────────────────────────────────────────────
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -61,7 +110,7 @@ export default function LoginPage() {
     setSuccess(null);
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
@@ -76,16 +125,13 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to create account');
+        setError(friendlyError(data.error || 'Failed to create account'));
         setLoading(false);
         return;
       }
 
-      // Account created successfully, now sign them in automatically
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Account created — sign them in automatically
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (signInError) {
         setSuccess('Account created successfully! Please sign in.');
@@ -100,30 +146,36 @@ export default function LoginPage() {
     }
   };
 
+  // ─── Forgot Password ────────────────────────────────────────────────────────
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!email) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (cooldown > 0) return; // Guard against double-submit during cooldown
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
-    if (!email) {
-      setError('Please enter your email address');
-      setLoading(false);
-      return;
-    }
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
-      setError(error.message);
+      setError(friendlyError(error.message));
     } else {
-      setSuccess('Password reset link has been sent to your email. Please check your inbox.');
+      setSuccess('Reset link sent! Please check your inbox (and spam folder).');
+      startCooldown();
     }
+
     setLoading(false);
   };
 
+  // ─── Helpers ────────────────────────────────────────────────────────────────
   const getTitle = () => {
     switch (mode) {
       case 'signup': return 'Create your account';
@@ -143,10 +195,13 @@ export default function LoginPage() {
   const getButtonText = () => {
     if (loading) {
       switch (mode) {
-        case 'signup': return 'Creating account...';
-        case 'forgot': return 'Sending reset link...';
-        default: return 'Signing in...';
+        case 'signup': return 'Creating account…';
+        case 'forgot': return 'Sending reset link…';
+        default: return 'Signing in…';
       }
+    }
+    if (mode === 'forgot' && cooldown > 0) {
+      return `Resend in ${cooldown}s`;
     }
     switch (mode) {
       case 'signup': return 'Create Account';
@@ -155,6 +210,9 @@ export default function LoginPage() {
     }
   };
 
+  const isButtonDisabled = loading || (mode === 'forgot' && cooldown > 0);
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10" />
@@ -184,21 +242,29 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-white py-8 px-8 shadow-xl sm:rounded-2xl border border-gray-100">
 
-          {/* Error message */}
+          {/* ── Error banner ── */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-              {error}
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
+              <svg className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0z" />
+              </svg>
+              <p className="text-red-700 text-sm leading-snug">{error}</p>
             </div>
           )}
 
-          {/* Success message */}
+          {/* ── Success banner ── */}
           {success && (
-            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
-              {success}
+            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 flex items-start gap-2.5">
+              <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-green-700 text-sm leading-snug">{success}</p>
             </div>
           )}
 
           <form onSubmit={getSubmitHandler()} className="flex flex-col gap-4">
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
@@ -216,7 +282,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Only show password field for signin and signup modes */}
+            {/* Password (signin / signup only) */}
             {mode !== 'forgot' && (
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -247,12 +313,33 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Cooldown hint for forgot-password */}
+            {mode === 'forgot' && cooldown > 0 && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                </svg>
+                <p className="text-amber-700 text-sm">
+                  You can request another link in <span className="font-semibold">{cooldown}s</span>
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              disabled={isButtonDisabled}
+              className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm shadow-sm hover:shadow-md"
             >
-              {getButtonText()}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v8H4z" />
+                  </svg>
+                  {getButtonText()}
+                </span>
+              ) : getButtonText()}
             </button>
           </form>
 
@@ -297,6 +384,7 @@ export default function LoginPage() {
               </p>
             )}
           </div>
+
         </div>
       </div>
     </div>
