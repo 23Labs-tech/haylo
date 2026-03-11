@@ -53,6 +53,11 @@ export default function LandingPage() {
           100% { transform: translateX(-50%); }
         }
 
+        @keyframes marqueeScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
         @keyframes fadeInUp {
           from {
             opacity: 0;
@@ -70,6 +75,10 @@ export default function LandingPage() {
 
         .animate-slide {
           animation: slideInfinite 20s linear infinite;
+        }
+
+        .trust-marquee {
+          animation: marqueeScroll 15s linear infinite;
         }
 
         .card-3d {
@@ -126,74 +135,121 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-24 px-4 gradient-mesh relative overflow-hidden">
+      <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-4 gradient-mesh relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-purple-600 font-semibold text-sm uppercase tracking-wide inline-block mb-4">
+          <div className="text-center mb-10 md:mb-16">
+            <span className="text-purple-600 font-semibold text-xs md:text-sm uppercase tracking-wide inline-block mb-3 md:mb-4">
               AI RECEPTIONIST FOR MED SPAS & AESTHETIC CLINICS
             </span>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight">
               Turn Every Missed Call<br />
               Into Booked Treatments
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
+            <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto mb-6 md:mb-8 leading-relaxed px-2">
               Your 24/7 AI receptionist answers every enquiry, books consultations, captures leads, and keeps your clinic fully scheduled without hiring more staff.
             </p>
-            <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm md:text-base">
               Book a Demo
             </button>
           </div>
 
-          {/* 3D Tilted Stats Cards */}
-          <div className="max-w-5xl mx-auto perspective-container">
-            <div className="relative h-[300px] md:h-[250px]">
-              {/* Card 1 - Left tilted */}
-              <div className="absolute left-0 top-0 md:left-[5%] card-3d w-[280px] md:w-[320px]"
-                style={{ transform: 'rotate(-6deg) translateY(20px)', zIndex: 1 }}>
-                <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
+          {/* 3D Tilted Stats Cards - Horizontal scroll on mobile, positioned on desktop */}
+          <div className="max-w-5xl mx-auto">
+            {/* Mobile: horizontal scroll */}
+            <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="snap-center flex-shrink-0 w-[240px]">
+                <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Phone className="w-7 h-7 text-purple-600" />
+                    <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-purple-600" />
                     </div>
-                    <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                    <span className="text-[10px] text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1">
                       +5.97% <TrendingUp className="w-3 h-3" />
                     </span>
                   </div>
-                  <div className="text-4xl font-bold text-gray-900 mb-1">156</div>
-                  <div className="text-sm text-gray-600">Enquiries Answered</div>
-                  <div className="text-xs text-gray-500 mt-2">+32 than last month</div>
+                  <div className="text-3xl font-bold text-gray-900 mb-1">156</div>
+                  <div className="text-xs text-gray-600">Enquiries Answered</div>
+                  <div className="text-[10px] text-gray-500 mt-1">+32 than last month</div>
                 </div>
               </div>
 
-              {/* Card 2 - Center (highlighted) */}
-              <div className="absolute left-1/2 top-0 transform -translate-x-1/2 card-3d w-[280px] md:w-[320px]"
-                style={{ transform: 'translateX(-50%) rotate(2deg) translateY(0px)', zIndex: 3 }}>
-                <div className="bg-gradient-to-br from-purple-600 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-2xl text-white">
+              <div className="snap-center flex-shrink-0 w-[240px]">
+                <div className="bg-gradient-to-br from-purple-600 via-purple-600 to-indigo-600 rounded-2xl p-5 shadow-xl text-white">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                      <Calendar className="w-7 h-7 text-white" />
+                    <div className="w-11 h-11 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-xs font-semibold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
+                    <span className="text-[10px] font-semibold bg-white/20 backdrop-blur px-2 py-0.5 rounded-full">
                       +250%
                     </span>
                   </div>
-                  <div className="text-5xl font-bold mb-1">42</div>
-                  <div className="text-sm opacity-90 mb-2">New Consultations</div>
-                  <div className="text-xs opacity-80">+18 than last month</div>
+                  <div className="text-4xl font-bold mb-1">42</div>
+                  <div className="text-xs opacity-90 mb-1">New Consultations</div>
+                  <div className="text-[10px] opacity-80">+18 than last month</div>
                 </div>
               </div>
 
-              {/* Card 3 - Right tilted */}
-              <div className="absolute right-0 top-0 md:right-[5%] card-3d w-[280px] md:w-[320px]"
-                style={{ transform: 'rotate(6deg) translateY(20px)', zIndex: 2 }}>
-                <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
+              <div className="snap-center flex-shrink-0 w-[240px]">
+                <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Users className="w-7 h-7 text-purple-600" />
+                    <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <Users className="w-5 h-5 text-purple-600" />
                     </div>
                   </div>
-                  <div className="text-4xl font-bold text-gray-900 mb-1">100%</div>
-                  <div className="text-sm text-gray-600">Leads Captured</div>
+                  <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
+                  <div className="text-xs text-gray-600">Leads Captured</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop: 3D tilted positioning */}
+            <div className="hidden md:block perspective-container">
+              <div className="relative h-[250px]">
+                <div className="absolute left-[5%] top-0 card-3d w-[320px]"
+                  style={{ transform: 'rotate(-6deg) translateY(20px)', zIndex: 1 }}>
+                  <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Phone className="w-7 h-7 text-purple-600" />
+                      </div>
+                      <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        +5.97% <TrendingUp className="w-3 h-3" />
+                      </span>
+                    </div>
+                    <div className="text-4xl font-bold text-gray-900 mb-1">156</div>
+                    <div className="text-sm text-gray-600">Enquiries Answered</div>
+                    <div className="text-xs text-gray-500 mt-2">+32 than last month</div>
+                  </div>
+                </div>
+
+                <div className="absolute left-1/2 top-0 card-3d w-[320px]"
+                  style={{ transform: 'translateX(-50%) rotate(2deg) translateY(0px)', zIndex: 3 }}>
+                  <div className="bg-gradient-to-br from-purple-600 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-2xl text-white">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                        <Calendar className="w-7 h-7 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
+                        +250%
+                      </span>
+                    </div>
+                    <div className="text-5xl font-bold mb-1">42</div>
+                    <div className="text-sm opacity-90 mb-2">New Consultations</div>
+                    <div className="text-xs opacity-80">+18 than last month</div>
+                  </div>
+                </div>
+
+                <div className="absolute right-[5%] top-0 card-3d w-[320px]"
+                  style={{ transform: 'rotate(6deg) translateY(20px)', zIndex: 2 }}>
+                  <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Users className="w-7 h-7 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="text-4xl font-bold text-gray-900 mb-1">100%</div>
+                    <div className="text-sm text-gray-600">Leads Captured</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -202,20 +258,33 @@ export default function LandingPage() {
       </section>
 
       {/* Trust Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">
+          <p className="text-purple-600 font-semibold mb-3 md:mb-4 uppercase text-xs md:text-sm tracking-wide">
             TRUSTED BY CLINIC LEADERS
           </p>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-gray-900 mb-6 md:mb-8 max-w-2xl mx-auto px-2">
             Leading med spas and aesthetic clinics love using Haylo
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-12 opacity-40">
+
+          {/* Desktop: grid */}
+          <div className="hidden md:grid grid-cols-5 gap-12 opacity-40">
             {['Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare'].map((brand) => (
               <div key={brand} className="text-xl font-bold text-gray-500 hover:opacity-100 transition">
                 {brand}
               </div>
             ))}
+          </div>
+
+          {/* Mobile: auto-scrolling marquee */}
+          <div className="md:hidden overflow-hidden relative">
+            <div className="flex trust-marquee whitespace-nowrap gap-8 opacity-40" style={{ width: 'max-content' }}>
+              {['Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare', 'Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare'].map((brand, i) => (
+                <span key={`${brand}-${i}`} className="text-base font-bold text-gray-500 inline-block px-3">
+                  {brand}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -327,10 +396,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="card-3d bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl p-12 flex flex-col items-center justify-center aspect-square shadow-xl border border-purple-100">
-            <Calendar className="w-24 h-24 text-purple-500 mb-6 animate-float" />
-            <h4 className="text-2xl font-bold text-gray-900 text-center mb-2">Seamless Calendar Sync</h4>
-            <p className="text-gray-600 text-center">Books appointments directly into your existing software perfectly.</p>
+          <div className="card-3d bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center md:aspect-square shadow-xl border border-purple-100">
+            <Calendar className="w-16 h-16 md:w-24 md:h-24 text-purple-500 mb-4 md:mb-6 animate-float" />
+            <h4 className="text-xl md:text-2xl font-bold text-gray-900 text-center mb-2">Seamless Calendar Sync</h4>
+            <p className="text-gray-600 text-center text-sm md:text-base">Books appointments directly into your existing software perfectly.</p>
           </div>
         </div>
       </section>
@@ -486,16 +555,16 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-4 gradient-mesh relative overflow-hidden">
+      <section className="py-20 md:py-32 px-4 gradient-mesh relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight">
             Start turning calls into bookings
           </h2>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+          <p className="text-base md:text-xl text-gray-600 mb-8 md:mb-10 leading-relaxed px-2">
             Ready to grow revenue by elevating customer experience?<br />
             Start your 30-day free trial today!
           </p>
-          <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-12 py-4 rounded-lg hover:bg-purple-700 transition font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
+          <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-700 transition font-semibold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
             Book a demo
           </button>
         </div>
