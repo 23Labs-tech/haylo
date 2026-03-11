@@ -145,7 +145,7 @@ export default function BookingsPage() {
                         </div>
                     </div>
                     <button
-                        onClick={() => window.location.href = '/login?next=/dashboard/bookings'}
+                        onClick={() => window.location.href = '/api/auth/google-calendar?next=/dashboard/bookings'}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -290,10 +290,10 @@ export default function BookingsPage() {
                                     >
                                         <span
                                             className={`text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full ${isToday
-                                                    ? 'bg-blue-600 text-white shadow-md'
-                                                    : isCurrentMonthDay
-                                                        ? 'text-gray-800'
-                                                        : 'text-gray-300'
+                                                ? 'bg-blue-600 text-white shadow-md'
+                                                : isCurrentMonthDay
+                                                    ? 'text-gray-800'
+                                                    : 'text-gray-300'
                                                 }`}
                                         >
                                             {displayNumber}
