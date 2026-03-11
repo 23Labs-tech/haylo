@@ -95,7 +95,7 @@ export async function POST(request: Request) {
             profile = newProfile;
         }
 
-        const vapiKey = process.env.VAPI_PUBLIC_KEY;
+        const vapiKey = process.env.NEXT_PUBLIC_VAPI_KEY;
         if (!vapiKey) {
             console.error('VAPI_PUBLIC_KEY is not set in environment variables!');
             return NextResponse.json({ error: 'Server misconfiguration: VAPI public key is missing.' }, { status: 500 });
