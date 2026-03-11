@@ -8,13 +8,14 @@ import { useRouter } from 'next/navigation';
 type FormMode = 'signin' | 'signup' | 'forgot';
 
 // How long (seconds) the user must wait before requesting another reset email
-const RESET_COOLDOWN_SECONDS = 60;
+// Supabase default SMTP allows ~2-3 emails/hour per address, so we use 5 min
+const RESET_COOLDOWN_SECONDS = 300;
 
 /** Maps raw Supabase/API error messages to friendly user-facing messages */
 function friendlyError(raw: string): string {
   const lower = raw.toLowerCase();
   if (lower.includes('rate limit') || lower.includes('too many')) {
-    return 'You have requested too many reset links. Please wait a minute before trying again.';
+    return 'A reset link was already sent to this email. Please check your inbox and spam folder. If you still need a new link, please wait about an hour before trying again.';
   }
   if (lower.includes('invalid login') || lower.includes('invalid credentials')) {
     return 'Incorrect email or password. Please try again.';
@@ -321,7 +322,10 @@ export default function LoginPage() {
                     d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                 </svg>
                 <p className="text-amber-700 text-sm">
-                  You can request another link in <span className="font-semibold">{cooldown}s</span>
+                  You can request another link in{' '}
+                  <span className="font-semibold">
+                    {cooldown >= 60 ? `${Math.ceil(cooldown / 60)}m ${cooldown % 60}s` : `${cooldown}s`}
+                  </span>
                 </p>
               </div>
             )}
