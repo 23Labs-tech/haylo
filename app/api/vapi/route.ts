@@ -121,8 +121,7 @@ export async function POST(request: Request) {
             },
             voice: {
                 provider: "11labs",
-                voiceId: "Ksdv9ebj41pjuicmeoou",
-                model: "eleven_turbo_v2_5"
+                voiceId: "bIHbv24MWmeRgasZH58o", // Will (Standard public voice)
             },
             firstMessage: greeting
         };
@@ -144,7 +143,7 @@ export async function POST(request: Request) {
             if (!vapiCreateRes.ok) {
                 const err = await vapiCreateRes.text();
                 console.error('VAPI Create Error:', err);
-                return NextResponse.json({ error: 'Failed to automatically provision a new VAPI assistant.' }, { status: 500 });
+                return NextResponse.json({ error: `VAPI Error: ${err}` }, { status: 500 });
             }
 
             const newAssistant = await vapiCreateRes.json();
