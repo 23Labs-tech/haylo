@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+// Admin client that bypasses RLS for profile updates
+function getSupabaseAdmin() {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
+
 export async function GET() {
     try {
         const supabase = await createClient();
@@ -26,7 +34,8 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { data: profile } = await supabase
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: profile } = await supabaseAdmin
             .from('profiles')
             .select('*')
             .eq('id', user.id)
@@ -42,6 +51,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const supabase = await createClient();
+        const supabaseAdmin = getSupabaseAdmin();
 
         // 1. Authenticate user to ensure they are logged in
         let user;
@@ -64,24 +74,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // 2. Fetch the user's profile from the Supabase database
-        // 2. Fetch the user's profile from the Supabase database
-        let { data: profile, error: profileError } = await supabase
+        // 2. Fetch the user's profile using admin client (bypasses RLS)
+        let { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .maybeSingle();
 
         if (profileError) {
+            console.error('Profile fetch error:', profileError);
             return NextResponse.json({ error: 'Database error fetching profile.' }, { status: 500 });
         }
 
         if (!profile) {
-            const supabaseAdmin = createSupabaseClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.SUPABASE_SERVICE_ROLE_KEY!
-            );
-
             const { data: newProfile, error: upsertError } = await supabaseAdmin
                 .from('profiles')
                 .upsert([{ id: user.id, email: user.email }], { onConflict: 'id' })
@@ -168,8 +173,8 @@ export async function POST(request: Request) {
             const newAssistant = await vapiCreateRes.json();
             assistantId = newAssistant.id; // Grab the newly created ID
 
-            // Instantly link this new bot directly to their Supabase profile!
-            const { error: updateError } = await supabase
+            // Instantly link this new bot directly to their Supabase profile using ADMIN client!
+            const { error: updateError } = await supabaseAdmin
                 .from('profiles')
                 .update({
                     vapi_assistant_id: assistantId,
@@ -179,6 +184,7 @@ export async function POST(request: Request) {
 
             if (updateError) {
                 console.error('Failed to link new Assistant ID to profile:', updateError);
+                return NextResponse.json({ error: `Assistant created but failed to save ID: ${updateError.message}` }, { status: 500 });
             }
 
         } else {
@@ -198,15 +204,16 @@ export async function POST(request: Request) {
             }
         }
 
-        // Save metadata into Supabase so we can fetch it when they log in later!
+        // Save metadata into Supabase using ADMIN client so we can fetch it when they log in later!
         const settingsPayload = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel };
-        const { error: settingsError } = await supabase.from('profiles').update({
+        const { error: settingsError } = await supabaseAdmin.from('profiles').update({
             clinic_name: clinicName,
             settings_json: JSON.stringify(settingsPayload)
         }).eq('id', user.id);
 
         if (settingsError) {
             console.error("Settings save error:", settingsError.message);
+            return NextResponse.json({ error: `Failed to save settings: ${settingsError.message}` }, { status: 500 });
         }
 
         return NextResponse.json({

@@ -1,16 +1,31 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+function getSupabaseAdmin() {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 export async function POST(request: Request) {
     try {
         const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const supabaseAdmin = getSupabaseAdmin();
 
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { data: profile } = await supabase
+        const vapiKey = process.env.VAPI_PRIVATE_KEY;
+        if (!vapiKey) {
+            return NextResponse.json({ error: 'Server misconfiguration: VAPI private key is missing.' }, { status: 500 });
+        }
+
+        // Use admin client to read profile (bypasses RLS)
+        const { data: profile } = await supabaseAdmin
             .from('profiles')
             .select('vapi_assistant_id, vapi_phone_number, clinic_name')
             .eq('id', user.id)
@@ -27,30 +42,42 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { number, twilioAccountSid, twilioAuthToken } = body;
 
-        let payload: any = {
-            provider: 'twilio',
-            number: number,
-            assistantId: profile.vapi_assistant_id,
-        };
-
         if (!twilioAccountSid || !twilioAuthToken) {
             return NextResponse.json({ error: 'Twilio Account SID and Auth Token are required.' }, { status: 400 });
         }
 
-        payload.twilioAccountSid = twilioAccountSid;
-        payload.twilioAuthToken = twilioAuthToken;
-        payload.name = `${profile.clinic_name} Twilio Number`;
+        const payload: any = {
+            provider: 'twilio',
+            number: number,
+            twilioAccountSid: twilioAccountSid,
+            twilioAuthToken: twilioAuthToken,
+            name: `${profile.clinic_name || 'Haylo'} Twilio Number`,
+            // Link phone number to the user's existing assistant
+            assistantId: profile.vapi_assistant_id,
+        };
 
+        // Import phone number to Vapi with timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
-        // Import phone number to Vapi
-        const vapiRes = await fetch(`https://api.vapi.ai/phone-number`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY || process.env.VAPI_PUBLIC_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+        let vapiRes;
+        try {
+            vapiRes = await fetch(`https://api.vapi.ai/phone-number`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${vapiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+        } catch (fetchErr: any) {
+            clearTimeout(timeout);
+            const msg = fetchErr?.name === 'AbortError' ? 'VAPI request timed out.' : 'Failed to reach VAPI.';
+            return NextResponse.json({ error: msg }, { status: 500 });
+        } finally {
+            clearTimeout(timeout);
+        }
 
         if (!vapiRes.ok) {
             const err = await vapiRes.text();
@@ -66,16 +93,19 @@ export async function POST(request: Request) {
 
         const newPhone = await vapiRes.json();
         const importedNumber = newPhone.number; // e.g., +1XXXXXXXXXX
+        const vapiPhoneId = newPhone.id; // VAPI phone number ID for linking
 
-        // Update Supabase with the new number
-        const { error: updateError } = await supabase
+        // Update Supabase with the new number using ADMIN client (bypasses RLS)
+        const { error: updateError } = await supabaseAdmin
             .from('profiles')
-            .update({ vapi_phone_number: importedNumber })
+            .update({
+                vapi_phone_number: importedNumber,
+            })
             .eq('id', user.id);
 
         if (updateError) {
             console.error('Supabase Phone Link Error:', updateError);
-            return NextResponse.json({ error: 'Failed to link number to profile.' }, { status: 500 });
+            return NextResponse.json({ error: `Phone imported to VAPI but failed to save to profile: ${updateError.message}` }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, phoneNumber: importedNumber });
