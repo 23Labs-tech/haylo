@@ -72,7 +72,7 @@ export async function GET() {
         try {
             const vapiRes = await fetch('https://api.vapi.ai/call?limit=50', {
                 headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`
+                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY || process.env.VAPI_PUBLIC_KEY}`
                 }
             });
 
