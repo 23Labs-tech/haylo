@@ -95,6 +95,12 @@ export async function POST(request: Request) {
             profile = newProfile;
         }
 
+        const vapiKey = process.env.VAPI_PRIVATE_KEY;
+        if (!vapiKey) {
+            console.error('VAPI_PRIVATE_KEY is not set in environment variables!');
+            return NextResponse.json({ error: 'Server misconfiguration: VAPI private key is missing.' }, { status: 500 });
+        }
+
         const { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel } = await request.json();
 
         // Parse Model selection (format: "provider|modelName", eg. "openai|gpt-4o")
@@ -134,7 +140,7 @@ export async function POST(request: Request) {
             const vapiCreateRes = await fetch(`https://api.vapi.ai/assistant`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY || process.env.VAPI_PUBLIC_KEY}`,
+                    'Authorization': `Bearer ${vapiKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(vapiPayload)
@@ -168,7 +174,7 @@ export async function POST(request: Request) {
             const vapiUpdateRes = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY || process.env.VAPI_PUBLIC_KEY}`,
+                    'Authorization': `Bearer ${vapiKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(vapiPayload)
