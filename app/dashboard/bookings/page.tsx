@@ -150,9 +150,9 @@ export default function BookingsPage() {
                                 const { createClient: createBrowserClient } = await import('@/utils/supabase/client');
                                 const supabase = createBrowserClient();
 
-                                // Use linkIdentity to connect Google to the EXISTING logged-in user
-                                // This does NOT create a new account — it just adds Google as a linked identity
-                                const { data, error } = await supabase.auth.linkIdentity({
+                                // Use signInWithOAuth to connect Google Calendar
+                                // Supabase's automatic linking will merge with existing email/password account
+                                const { data, error } = await supabase.auth.signInWithOAuth({
                                     provider: 'google',
                                     options: {
                                         redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/bookings`,
@@ -165,7 +165,7 @@ export default function BookingsPage() {
                                 });
 
                                 if (error) {
-                                    console.error('Google link error:', error);
+                                    console.error('Google auth error:', error);
                                     alert('Failed to connect Google Calendar: ' + error.message);
                                     return;
                                 }
