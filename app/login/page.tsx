@@ -48,8 +48,7 @@ export default function LoginPage() {
                 input: 'rounded-xl',
               }
             }}
-            providers={['google']}
-            providerScopes={{ google: 'https://www.googleapis.com/auth/calendar' }}
+            providers={[]}
             redirectTo={`${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`}
             onlyThirdPartyProviders={false}
           />
