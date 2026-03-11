@@ -82,15 +82,15 @@ export async function POST(request: Request) {
                 process.env.SUPABASE_SERVICE_ROLE_KEY!
             );
 
-            const { data: newProfile, error: insertError } = await supabaseAdmin
+            const { data: newProfile, error: upsertError } = await supabaseAdmin
                 .from('profiles')
-                .insert([{ id: user.id, email: user.email }])
+                .upsert([{ id: user.id, email: user.email }], { onConflict: 'id' })
                 .select()
                 .single();
 
-            if (insertError) {
-                console.error("Profile insert error:", insertError);
-                return NextResponse.json({ error: `Failed to create profile: ${insertError.message}` }, { status: 500 });
+            if (upsertError) {
+                console.error("Profile upsert error:", upsertError);
+                return NextResponse.json({ error: `Failed to create profile: ${upsertError.message}` }, { status: 500 });
             }
             profile = newProfile;
         }
