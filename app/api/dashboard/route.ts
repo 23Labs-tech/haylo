@@ -1,15 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+function getSupabaseAdmin() {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 export async function GET() {
     try {
         const supabase = await createClient();
+        const supabaseAdmin = getSupabaseAdmin();
 
         let user;
         try {
             const { data, error: authError } = await supabase.auth.getUser();
             if (authError) {
-                // Check if it's a connection error vs. actual auth failure
                 const errMsg = authError.message?.toLowerCase() || '';
                 if (errMsg.includes('timeout') || errMsg.includes('fetch') || errMsg.includes('enotfound') || errMsg.includes('connect')) {
                     return NextResponse.json({ error: 'Service temporarily unavailable. Please retry.' }, { status: 503 });
@@ -26,8 +34,8 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // 1. Get the user's profile to find their assistant ID
-        const { data: profile, error: profileError } = await supabase
+        // 1. Get the user's profile using ADMIN client (bypasses RLS)
+        const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .select('vapi_assistant_id, clinic_name, settings_json')
             .eq('id', user.id)
@@ -68,23 +76,27 @@ export async function GET() {
         }
 
         // 2. Fetch calls from Vapi API for this specific assistant
+        const vapiKey = process.env.VAPI_PRIVATE_KEY;
         let vapiCalls: any[] = [];
-        try {
-            const vapiRes = await fetch('https://api.vapi.ai/call?limit=50', {
-                headers: {
-                    'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY || process.env.VAPI_PUBLIC_KEY}`
-                }
-            });
 
-            if (vapiRes.ok) {
-                const allCalls = await vapiRes.json();
-                // Filter calls for THIS user's assistant only
-                vapiCalls = (Array.isArray(allCalls) ? allCalls : []).filter(
-                    (call: any) => call.assistantId === assistantId
-                );
+        if (vapiKey) {
+            try {
+                const vapiRes = await fetch('https://api.vapi.ai/call?limit=50', {
+                    headers: {
+                        'Authorization': `Bearer ${vapiKey}`
+                    }
+                });
+
+                if (vapiRes.ok) {
+                    const allCalls = await vapiRes.json();
+                    // Filter calls for THIS user's assistant only
+                    vapiCalls = (Array.isArray(allCalls) ? allCalls : []).filter(
+                        (call: any) => call.assistantId === assistantId
+                    );
+                }
+            } catch (e) {
+                console.error('Failed to fetch Vapi calls:', e);
             }
-        } catch (e) {
-            console.error('Failed to fetch Vapi calls:', e);
         }
 
         // 3. Transform call data
@@ -119,7 +131,7 @@ export async function GET() {
             stats: {
                 totalCalls,
                 totalCallsAll: calls.length,
-                bookings: 0, // This would come from your booking system
+                bookings: 0,
                 followUps: 0,
                 satisfaction: successRate
             },
