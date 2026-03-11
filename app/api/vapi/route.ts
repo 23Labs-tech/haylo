@@ -120,7 +120,6 @@ export async function POST(request: Request) {
             model: {
                 provider: provider || "openai",
                 model: modelName || "gpt-3.5-turbo",
-                toolIds: ["775ffe36-e032-470d-b70f-7a529c50180b"],
                 messages: [
                     { role: 'system', content: prompt }
                 ]
@@ -132,19 +131,33 @@ export async function POST(request: Request) {
             firstMessage: greeting
         };
 
+        // 15-second timeout for VAPI calls so the button never gets permanently stuck
+        const makeVapiRequest = (url: string, method: string, body: object) => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15000);
+            return fetch(url, {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${vapiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body),
+                signal: controller.signal
+            }).finally(() => clearTimeout(timeout));
+        };
+
         let assistantId = profile.vapi_assistant_id;
 
         // 5. Automatic Provisioning Logic
         if (!assistantId) {
             // THEY DON'T HAVE A BOT YET! CREATE ONE ON THE FLY.
-            const vapiCreateRes = await fetch(`https://api.vapi.ai/assistant`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${vapiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(vapiPayload)
-            });
+            let vapiCreateRes;
+            try {
+                vapiCreateRes = await makeVapiRequest(`https://api.vapi.ai/assistant`, 'POST', vapiPayload);
+            } catch (fetchErr: any) {
+                const msg = fetchErr?.name === 'AbortError' ? 'VAPI request timed out. Please try again.' : 'Failed to reach VAPI. Check your connection.';
+                return NextResponse.json({ error: msg }, { status: 500 });
+            }
 
             if (!vapiCreateRes.ok) {
                 const err = await vapiCreateRes.text();
@@ -166,24 +179,22 @@ export async function POST(request: Request) {
 
             if (updateError) {
                 console.error('Failed to link new Assistant ID to profile:', updateError);
-                // We won't block the request, but we should log it
             }
 
         } else {
             // THEY ALREADY HAVE A BOT! JUST UPDATE IT.
-            const vapiUpdateRes = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${vapiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(vapiPayload)
-            });
+            let vapiUpdateRes;
+            try {
+                vapiUpdateRes = await makeVapiRequest(`https://api.vapi.ai/assistant/${assistantId}`, 'PATCH', vapiPayload);
+            } catch (fetchErr: any) {
+                const msg = fetchErr?.name === 'AbortError' ? 'VAPI request timed out. Please try again.' : 'Failed to reach VAPI. Check your connection.';
+                return NextResponse.json({ error: msg }, { status: 500 });
+            }
 
             if (!vapiUpdateRes.ok) {
                 const err = await vapiUpdateRes.text();
                 console.error('VAPI Update Error:', err);
-                return NextResponse.json({ error: 'Failed to update your existing VAPI assistant.' }, { status: 500 });
+                return NextResponse.json({ error: `VAPI Error: ${err}` }, { status: 500 });
             }
         }
 
