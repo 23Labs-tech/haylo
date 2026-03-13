@@ -147,6 +147,10 @@ export default function LandingPage() {
             <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
               <a href="#" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Home</a>
               <a href="#solutions" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Solutions</a>
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Sign in</Link>
+              <button onClick={() => { setDemoModalOpen(true); setMobileMenuOpen(false); }} className="bg-gray-900 text-white w-full py-3 rounded-full font-semibold text-sm mt-3">
+                Book a Demo
+              </button>
             </div>
           </div>
         )}
