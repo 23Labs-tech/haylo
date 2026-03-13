@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Calendar, CheckCircle2, Users, TrendingUp, Star, ChevronDown, Infinity } from 'lucide-react';
+import { Phone, Calendar, CheckCircle2, Users, TrendingUp, Star, ChevronDown, Infinity, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<'restaurant' | 'hotel'>('restaurant');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Book a demo modal state
   const [isDemoModalOpen, setDemoModalOpen] = useState(false);
@@ -111,31 +112,48 @@ export default function LandingPage() {
         }
       `}</style>
 
-      {/* Navigation */}
+      {/* Navigation - Same style on mobile & desktop */}
       <nav className="fixed top-0 left-0 right-0 w-full glass-effect z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 md:h-16">
+            {/* Logo */}
             <div className="flex items-center gap-2">
-              <img src="/haylo-logo.jpg" alt="Haylo Logo" className="h-10 w-auto mix-blend-multiply" />
+              <img src="/haylo-logo.jpg" alt="Haylo Logo" className="h-8 md:h-10 w-auto mix-blend-multiply" />
             </div>
 
+            {/* Desktop nav links */}
             <div className="hidden md:flex items-center gap-8">
               <a href="#" className="text-gray-600 hover:text-gray-900 transition">Home</a>
               <a href="#solutions" className="text-gray-600 hover:text-gray-900 transition">Solutions</a>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-gray-600 hover:text-gray-900 transition">Sign in</Link>
-              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 transition font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+            {/* Right side: Sign in + Book a demo + Hamburger (mobile only) */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <Link href="/login" className="text-gray-600 hover:text-gray-900 transition text-xs md:text-sm font-medium">Sign in</Link>
+              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-lg hover:bg-purple-700 transition font-medium shadow-md hover:shadow-xl transform hover:scale-105 text-xs md:text-sm">
                 Book a demo
+              </button>
+              {/* Hamburger - mobile only */}
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-1 text-gray-700 hover:text-gray-900 transition">
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-100 bg-white shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+              <a href="#" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Home</a>
+              <a href="#solutions" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Solutions</a>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-4 gradient-mesh relative overflow-hidden">
+      <section className="pt-20 md:pt-32 pb-16 md:pb-24 px-4 gradient-mesh relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
             <span className="text-purple-600 font-semibold text-xs md:text-sm uppercase tracking-wide inline-block mb-3 md:mb-4">
