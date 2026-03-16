@@ -161,18 +161,25 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
             <span className="text-purple-600 font-semibold text-xs md:text-sm uppercase tracking-wide inline-block mb-3 md:mb-4">
-              AI RECEPTIONIST FOR MED SPAS & AESTHETIC CLINICS
+              AI Receptionist for Allied Health Practices
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight">
-              Turn Every Missed Call<br />
-              Into Booked Treatments
+              Never Miss Another<br />
+              Patient Call
             </h1>
             <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto mb-6 md:mb-8 leading-relaxed px-2">
-              Your 24/7 AI receptionist answers every enquiry, books consultations, captures leads, and keeps your clinic fully scheduled without hiring more staff.
+              When your team is busy with patients, Haylo answers every call, captures new patient enquiries, and books appointments automatically.<br/><br/>
+              No missed calls. No overwhelmed reception desk. No lost bookings. Just a more responsive, better organised practice.
             </p>
-            <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm md:text-base">
-              Book a Demo
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm md:text-base w-full sm:w-auto">
+                See How Haylo Handles Your Calls
+              </button>
+              <button className="border-2 border-purple-600 text-purple-600 px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-50 transition font-semibold flex items-center justify-center gap-2 transform hover:scale-105 text-sm md:text-base w-full sm:w-auto">
+                <Phone className="w-5 h-5" />
+                Hear Haylo Answer a Call
+              </button>
+            </div>
           </div>
 
           {/* 3D Tilted Stats Cards - Horizontal scroll on mobile, positioned on desktop */}
@@ -282,16 +289,40 @@ export default function LandingPage() {
       {/* Trust Section */}
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 text-center">
+          {/* Missed Calls Section (NEW) */}
+          <div className="bg-red-50 p-8 md:p-12 rounded-3xl mb-16 md:mb-24 shadow-sm border border-red-100 text-left max-w-6xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Most Allied Health clinics lose new patients every week
+            </h2>
+            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+              When a potential patient calls your clinic and nobody answers, they rarely leave a voicemail. They simply call the next clinic on Google.
+            </p>
+            <p className="text-lg text-gray-800 font-semibold mb-4">That means missed calls often become:</p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 mb-8 font-medium">
+              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost new patients</li>
+              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost treatment plans</li>
+              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost long term clients</li>
+              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Empty appointment slots</li>
+            </ul>
+            <p className="text-lg font-medium text-purple-700 bg-purple-50 p-6 rounded-xl mb-8">
+              Haylo ensures every call is answered, every enquiry is captured, and every booking opportunity is handled instantly.
+            </p>
+            <button className="bg-white border-2 border-purple-600 text-purple-600 px-8 py-3.5 rounded-lg hover:bg-purple-50 transition font-semibold flex items-center justify-center gap-2 transform hover:scale-105 inline-flex">
+              <Phone className="w-5 h-5" />
+              Hear Haylo Answer a Call
+            </button>
+          </div>
+
           <p className="text-purple-600 font-semibold mb-3 md:mb-4 uppercase text-xs md:text-sm tracking-wide">
-            TRUSTED BY CLINIC LEADERS
+            TRUSTED BY GROWING ALLIED HEALTH PRACTICES
           </p>
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-gray-900 mb-6 md:mb-8 max-w-2xl mx-auto px-2">
-            Leading med spas and aesthetic clinics love using Haylo
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-12 max-w-4xl mx-auto px-2 leading-relaxed">
+            Physio clinics, chiropractors, psychologists, podiatrists, speech pathologists, occupational therapists, and multidisciplinary clinics use Haylo to stay responsive and keep their calendars full.
           </h2>
 
           {/* Desktop: grid */}
           <div className="hidden md:grid grid-cols-5 gap-12 opacity-40">
-            {['Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare'].map((brand) => (
+            {['Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise Podiatry', 'Bloom Therapy'].map((brand) => (
               <div key={brand} className="text-xl font-bold text-gray-500 hover:opacity-100 transition">
                 {brand}
               </div>
@@ -301,7 +332,7 @@ export default function LandingPage() {
           {/* Mobile: auto-scrolling marquee */}
           <div className="md:hidden overflow-hidden relative">
             <div className="flex trust-marquee whitespace-nowrap gap-8 opacity-40" style={{ width: 'max-content' }}>
-              {['Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare', 'Lumina Aesthetics', 'Radiance MedSpa', 'Elite Wellness', 'Glow Clinic', 'DermaCare'].map((brand, i) => (
+              {['Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise Podiatry', 'Bloom Therapy', 'Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise', 'Bloom Therap'].map((brand, i) => (
                 <span key={`${brand}-${i}`} className="text-base font-bold text-gray-500 inline-block px-3">
                   {brand}
                 </span>
@@ -316,91 +347,98 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">
-              MEET YOUR VIRTUAL FRONT DESK
+              THE PROBLEM
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              The Future of Aesthetic & Wellness Clinics
+              Running a busy Allied Health practice is demanding
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Our AI receptionist helps clinics increase bookings, capture every enquiry, and free up staff to focus on in-clinic treatments and patient experience.
+              Your team is focused on patient care. But the front desk is constantly managing:
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto mt-20">
-            {/* Problem */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto mt-12">
+            {/* Problem List */}
             <div className="bg-white p-10 rounded-3xl shadow-lg border border-red-100 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -mr-16 -mt-16 z-0"></div>
               <div className="relative z-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xl">!</span>
-                  The Problem
-                </h3>
-                <p className="text-lg font-medium text-gray-800 mb-6">Most clinics are losing revenue every single day.</p>
-                <ul className="space-y-4 text-gray-600">
-                  <li className="flex gap-3"><span className="text-red-500 mt-1">✕</span> Missed calls.</li>
-                  <li className="flex gap-3"><span className="text-red-500 mt-1">✕</span> Slow responses to new enquiries.</li>
-                  <li className="flex gap-3"><span className="text-red-500 mt-1">✕</span> Reception teams overloaded with repetitive admin.</li>
-                  <li className="flex gap-3"><span className="text-red-500 mt-1">✕</span> Potential clients going to competitors who answer first.</li>
+                <ul className="space-y-4 text-gray-800 font-medium text-lg mb-8">
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Incoming calls</li>
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Appointment bookings</li>
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Cancellations and reschedules</li>
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> New patient enquiries</li>
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Practitioner schedules</li>
+                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Admin tasks</li>
                 </ul>
-                <div className="mt-8 p-4 bg-red-50 rounded-xl text-red-900 text-sm font-medium">
-                  If a new treatment enquiry waits even 10 minutes, the chance of booking drops dramatically. You are already paying for marketing, staff, and software. But enquiries are still slipping through.
+                <div className="p-5 bg-red-50 rounded-xl text-red-900 text-base font-semibold border border-red-100">
+                  When things get busy, something gives. That’s when calls get missed, enquiries go unanswered, and new patients move on to the next clinic that picks up.
                 </div>
               </div>
             </div>
 
-            {/* Solution */}
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-10 rounded-3xl shadow-xl text-white relative overflow-hidden">
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-tr-full -ml-16 -mb-16 z-0"></div>
+            {/* Reception Overload */}
+            <div className="bg-orange-50 p-10 rounded-3xl shadow-lg border border-orange-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full -mr-16 -mt-16 z-0"></div>
               <div className="relative z-10">
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  The Solution
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                  Your reception team is already stretched
                 </h3>
-                <p className="text-xl font-bold text-white mb-6">Never miss another high-value enquiry</p>
-                <p className="text-white/90 mb-6 leading-relaxed">
-                  Our AI receptionist answers every call and enquiry instantly, books consultations, and captures new leads automatically.
+                <p className="text-lg text-gray-800 mb-6">
+                  During peak hours reception staff are juggling phone calls while managing patients at the desk. That’s when missed calls happen.
                 </p>
-                <p className="text-white/90 mb-8 leading-relaxed">
-                  It works alongside your existing front desk to make sure no opportunity is missed, even after hours or during busy periods.
+                <p className="text-lg text-gray-800 mb-8">
+                  Haylo works alongside your team to answer calls, handle enquiries, and capture booking requests so your staff can stay focused on patient care.
                 </p>
-                <ul className="space-y-4 font-medium text-white">
-                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-purple-300" /> More bookings.</li>
-                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-purple-300" /> Less admin.</li>
-                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-purple-300" /> A smoother patient experience.</li>
-                </ul>
+                <div className="p-5 bg-white rounded-xl text-orange-900 text-base font-bold shadow-sm">
+                  Haylo doesn't replace reception.<br/>It removes the pressure from the phones.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Solution Section */}
+          <div className="max-w-6xl mx-auto mt-12 bg-gradient-to-br from-purple-600 to-indigo-600 p-10 md:p-14 rounded-3xl shadow-xl text-white text-center relative overflow-hidden">
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-tl-full blur-2xl -mr-16 -mb-16 z-0"></div>
+            <div className="relative z-10">
+              <h3 className="text-purple-200 font-bold tracking-widest text-sm mb-4">THE SOLUTION</h3>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Meet Your Virtual Receptionist</h2>
+              <h3 className="text-xl md:text-2xl font-semibold mb-8 text-purple-100">Haylo makes sure every call is answered</h3>
+              <p className="text-lg md:text-xl text-white/90 mb-6 max-w-4xl mx-auto leading-relaxed">
+                Haylo works alongside your practice to manage the constant flow of calls and enquiries that come in every day.
+              </p>
+              <p className="text-lg md:text-xl text-white/90 mb-10 max-w-4xl mx-auto leading-relaxed">
+                It answers calls instantly, handles common patient questions, books appointments, and captures new patient details automatically.
+              </p>
+              <div className="inline-block bg-white/20 backdrop-blur border border-white/30 rounded-full px-8 py-4 font-bold text-white shadow-inner text-lg">
+                So your team spends less time chasing admin and more time focused on patients.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Built for Med Spas Section */}
+      {/* Features Section */}
       <section className="py-24 px-4 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Built for Med Spas & Aesthetic Clinics
+              Built for Allied Health Businesses
             </h3>
-            <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-              On average, clinics miss a significant number of calls and new treatment enquiries each week, and most potential clients will simply move on to the next clinic if no one answers.
-            </p>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              With your AI receptionist, every call and enquiry is handled instantly, leading to more consultations booked, a better client experience, and a consistently fuller calendar without adding more staff.
+              Whether you run a physiotherapy clinic, chiropractic practice, psychology clinic, podiatry business, speech pathology service, occupational therapy practice, or multidisciplinary centre, Haylo helps your practice stay organised and responsive.
             </p>
-
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Haylo helps practices:</h4>
             <div className="space-y-4 mb-10">
               {[
-                'Answers every call and new client enquiry, 24/7',
-                'Books, reschedules, and cancels consultations automatically',
-                'Captures new treatment leads and client details instantly',
-                'Reduces missed opportunities and enquiry drop-off',
-                'Integrates with your booking system and calendar',
-                'Provides call summaries, transcripts, and lead insights',
-                'Go live quickly with minimal setup or training required'
+                'Answer every call during consultations',
+                'Capture new patient enquiries instantly',
+                'Book appointments directly into your calendar',
+                'Reduce reception overload during busy periods',
+                'Respond faster to new patient enquiries',
+                'Eliminate admin bottlenecks from manual booking',
+                'Prevent lost bookings from missed calls'
               ].map((feature, i) => (
-                <div key={i} className="flex items-start gap-3 transform hover:translate-x-2 transition">
+                <div key={i} className="flex items-start gap-3 transform hover:translate-x-2 transition p-2 hover:bg-purple-50 rounded-lg">
                   <CheckCircle2 className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
                   <span className="text-gray-700 font-medium">{feature}</span>
                 </div>
@@ -408,103 +446,166 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-purple-600 text-white px-8 py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
                 Book a Demo
-              </button>
-              <button className="border-2 border-purple-600 text-purple-600 px-8 py-3.5 rounded-lg hover:bg-purple-50 transition font-semibold flex items-center justify-center gap-2 transform hover:scale-105">
-                <Phone className="w-5 h-5" />
-                Hear It Answer a Call
               </button>
             </div>
           </div>
 
-          <div className="card-3d bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center md:aspect-square shadow-xl border border-purple-100">
-            <Calendar className="w-16 h-16 md:w-24 md:h-24 text-purple-500 mb-4 md:mb-6 animate-float" />
-            <h4 className="text-xl md:text-2xl font-bold text-gray-900 text-center mb-2">Seamless Calendar Sync</h4>
-            <p className="text-gray-600 text-center text-sm md:text-base">Books appointments directly into your existing software perfectly.</p>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="card-3d bg-purple-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-purple-100 text-center">
+              <Phone className="w-12 h-12 text-purple-500 mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">Always On</h4>
+              <p className="text-sm text-gray-600">Answers instantly during busy hours</p>
+            </div>
+            <div className="card-3d bg-indigo-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-indigo-100 text-center mt-12">
+              <Calendar className="w-12 h-12 text-indigo-500 mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">Smart Sync</h4>
+              <p className="text-sm text-gray-600">Knows when practitioners are free</p>
+            </div>
+            <div className="card-3d bg-blue-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-blue-100 text-center">
+              <Users className="w-12 h-12 text-blue-500 mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">Patient Focused</h4>
+              <p className="text-sm text-gray-600">Captures full details and preferences</p>
+            </div>
+            <div className="card-3d bg-green-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-green-100 text-center mt-12">
+              <TrendingUp className="w-12 h-12 text-green-500 mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">Practice Growth</h4>
+              <p className="text-sm text-gray-600">Eliminates lost bookings entirely</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-24 px-4 bg-gray-50">
+      <section className="py-24 px-4 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">
-              HOW IT WORKS
-            </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-              How your AI receptionist works
+              How Haylo supports your practice
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-8">
-            <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">1</div>
               <h4 className="text-xl font-bold text-gray-900 mb-4">Answers every call instantly</h4>
-              <p className="text-gray-600 text-sm">No voicemail. No missed opportunities. Every caller is greeted professionally and helped immediately.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">No voicemail. No missed enquiries. Every caller is greeted and helped immediately.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">2</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Books consultations automatically</h4>
-              <p className="text-gray-600 text-sm">Connects to your calendar and books appointments in real time based on your availability.</p>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Books appointments automatically</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Haylo connects to your calendar and schedules appointments in real time based on availability.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">3</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Captures and qualifies new leads</h4>
-              <p className="text-gray-600 text-sm">Collects name, number, treatment interest, and urgency so your team knows exactly who is calling and why.</p>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Captures new patient enquiries</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Patient details, reason for enquiry, and booking preferences are recorded instantly.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">4</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Sends confirmations and reminders</h4>
-              <p className="text-gray-600 text-sm">SMS and email confirmations are sent automatically to reduce no-shows and back-and-forth.</p>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Reduces reception overload</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Your team no longer needs to handle every incoming call during busy clinic hours.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">5</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Integrates with your existing systems</h4>
-              <p className="text-gray-600 text-sm">Works alongside your current booking software, CRM, and workflows.</p>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Keeps your practice responsive</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Patients receive immediate assistance, faster bookings, and a better overall experience.</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Live Demo Call Section (NEW) */}
+      <section className="py-24 px-4 bg-purple-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 gradient-mesh opacity-20"></div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Call Haylo and hear it for yourself</h2>
+          <p className="text-lg md:text-xl text-purple-100 mb-8 max-w-2xl mx-auto leading-relaxed">
+            The best way to understand Haylo is to experience it. Call the demo number below and speak with the virtual receptionist exactly like a patient would.
+          </p>
+          <p className="text-lg text-purple-200 mb-10 max-w-2xl mx-auto font-medium">
+            Try booking an appointment or asking a question.
+          </p>
+          
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl inline-block shadow-2xl">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                <Phone className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl md:text-5xl font-black tracking-wider">
+                03 XXXX XXXX
+              </div>
+            </div>
+            <p className="text-purple-200 text-sm font-medium mt-4">See how Haylo could support your practice in seconds.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Integration Section */}
+      <section className="py-24 px-4 bg-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
+          <div className="flex-1">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Works with your existing systems
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              Haylo connects with your calendar and booking platform so appointments, cancellations, and reschedules stay organised automatically.
+            </p>
+            <div className="bg-purple-50 border-l-4 border-purple-600 p-6 rounded-r-xl">
+              <p className="text-lg font-semibold text-gray-900 mb-2">Your team keeps working the same way.</p>
+              <p className="text-gray-700">Haylo simply removes the pressure from the phones.</p>
+            </div>
+          </div>
+          <div className="flex-1 relative w-full aspect-square md:aspect-auto md:h-96 bg-gray-50 rounded-3xl border border-gray-200 p-8 flex flex-col items-center justify-center overflow-hidden">
+             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 to-indigo-100/50"></div>
+             <div className="relative z-10 flex gap-4 items-center">
+                <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '0s' }}>
+                  <span className="font-bold text-gray-400">PMS</span>
+                </div>
+                <div className="flex gap-2 text-gray-300">
+                  <Infinity className="w-8 h-8" />
+                </div>
+                <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '1s' }}>
+                  <img src="/haylo-logo.jpg" alt="Haylo" className="h-8 object-contain mix-blend-multiply" />
+                </div>
+             </div>
+             <p className="relative z-10 mt-10 font-medium text-gray-600 text-center uppercase tracking-widest text-sm">Seamless Sync</p>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
-      <section className="py-24 px-4 bg-gray-50">
+      <section className="py-24 px-4 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">
-              TESTIMONIALS
-            </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Real stories, real impact
+              Real results from real practices
             </h2>
-            <p className="text-lg text-gray-600">
-              From the first call to fully booked schedules, clinics are transforming how they connect with patients.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                quote: "Haylo handled over 700 calls last month and made more than 100 bookings. That's huge. She shields us from the noise and only transfers truly complex cases.",
-                author: "Chris",
-                company: "Lumina Aesthetics"
+                quote: "Before Haylo we were constantly missing calls during treatment hours. Now every enquiry gets handled and our bookings are much more consistent.",
+                author: "Practice Manager",
+                company: "Physiotherapy Clinic"
               },
               {
-                quote: "Your partnership and collaboration has sealed the deal for me for life. Most companies don't truly care, and I know because I talked to all your competitors.",
-                author: "Ed",
-                company: "Glow Wellness"
+                quote: "Reception used to get overwhelmed during busy periods. Haylo has taken a huge amount of pressure off the team.",
+                author: "Clinic Owner",
+                company: "Allied Health Practice"
               },
               {
-                quote: "I swear the manager hung up the phone and it hasn't stopped ringing coming in from the Haylo phone.",
-                author: "Rob",
-                company: "DermaCare Clinic"
+                quote: "New patient enquiries used to sit unanswered during busy days. Now they are captured instantly.",
+                author: "Director",
+                company: "Multidisciplinary Clinic"
               }
             ].map((item, i) => (
               <div key={i} className="card-3d bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex flex-col">
@@ -513,10 +614,10 @@ export default function LandingPage() {
                     <Star key={i} className="w-5 h-5 fill-purple-600 text-purple-600" />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 leading-relaxed flex-grow">"{item.quote}"</p>
+                <p className="text-gray-700 mb-6 leading-relaxed flex-grow text-lg italic">"{item.quote}"</p>
                 <div className="border-t border-gray-100 pt-4">
                   <div className="font-semibold text-gray-900">{item.author}</div>
-                  <div className="text-sm text-gray-600">{item.company}</div>
+                  <div className="text-sm text-purple-600 font-medium">{item.company}</div>
                 </div>
               </div>
             ))}
@@ -528,30 +629,28 @@ export default function LandingPage() {
       <section className="py-24 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">FAQ</p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Frequently Asked Questions
+              FAQ
             </h2>
-            <p className="text-lg text-gray-600">Clear answers to common questions about Haylo.</p>
           </div>
 
           <div className="space-y-4">
             {[
               {
-                q: 'What is Haylo and how does it work?',
-                a: 'Haylo is the AI receptionist built for med spas and clinics. She answers every call, manages bookings, and assists patients around the clock. Fully customizable to your clinic, she keeps your team focused on delivering exceptional in-person care.'
+                q: 'What is Haylo?',
+                a: 'Haylo is a virtual receptionist designed for Allied Health practices. It answers calls, manages bookings, captures enquiries, and supports your front desk.'
               },
               {
                 q: 'What types of calls can Haylo handle?',
-                a: 'Haylo can handle reservation requests, treatment inquiries, hours of operation, event bookings, and general patient questions. She seamlessly integrates with your booking system.'
+                a: 'Haylo can manage new patient enquiries, appointment bookings, reschedules, cancellations, and general practice questions.'
               },
               {
-                q: 'How long does it take to set up Haylo?',
-                a: 'Most clinics are up and running within 24-48 hours. Our onboarding team handles the technical setup and customization.'
+                q: 'Will Haylo replace my reception team?',
+                a: 'No. Haylo supports your reception team by handling repetitive calls and enquiries so staff can focus on patients and higher value tasks.'
               },
               {
-                q: 'Which partners and platforms does Haylo integrate with?',
-                a: 'Haylo integrates with major clinic management systems, booking platforms like Mango, Zenoti, scheduling tools, and communication tools. Contact us for the full list of integrations.'
+                q: 'How long does setup take?',
+                a: 'Most practices can get started quickly with a simple configuration based on your services, availability, and workflows.'
               }
             ].map((faq, i) => (
               <div key={i} className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-purple-300 transition-all">
@@ -566,7 +665,7 @@ export default function LandingPage() {
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="px-8 pb-6 text-gray-600 leading-relaxed">
+                  <div className="px-8 pb-6 text-gray-600 leading-relaxed text-lg">
                     {faq.a}
                   </div>
                 )}
@@ -576,22 +675,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 md:py-32 px-4 gradient-mesh relative overflow-hidden">
+      {/* FINAL CTA Section */}
+      <section className="py-20 md:py-32 px-4 gradient-mesh relative overflow-hidden bg-purple-50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight">
-            Start turning calls into bookings
+            Stop losing appointments to missed calls
           </h2>
-          <p className="text-base md:text-xl text-gray-600 mb-8 md:mb-10 leading-relaxed px-2">
-            Ready to grow revenue by elevating customer experience?<br />
-            Start your 30-day free trial today!
+          <p className="text-base md:text-xl text-gray-700 mb-4 leading-relaxed px-2 font-medium">
+            If your practice is growing, missed calls and admin overload become unavoidable.
           </p>
-          <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-700 transition font-semibold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
-            Book a demo
-          </button>
+          <p className="text-base md:text-xl text-gray-600 mb-10 leading-relaxed px-2">
+            Haylo ensures every enquiry is answered, every booking opportunity is captured, and your reception team stays focused on patient care.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-700 transition font-semibold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
+              Start your free trial today
+            </button>
+            <button onClick={() => setDemoModalOpen(true)} className="bg-white border-2 border-purple-600 text-purple-600 px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-50 transition font-semibold text-base md:text-lg shadow-md hover:shadow-lg transform hover:scale-105">
+              See How Haylo Handles Your Calls
+            </button>
+          </div>
         </div>
-
-
       </section>
 
       {/* Footer */}
