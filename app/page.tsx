@@ -1,19 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Phone, Calendar, CheckCircle2, Users, TrendingUp, Star, ChevronDown, Infinity, Menu, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, ChevronDown, Menu, X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingPage() {
-  const [activeTab, setActiveTab] = useState<'restaurant' | 'hotel'>('restaurant');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
 
   // Book a demo modal state
   const [isDemoModalOpen, setDemoModalOpen] = useState(false);
   const [demoForm, setDemoForm] = useState({ fullName: '', email: '', mobile: '', company: '', address: '' });
   const [demoStatus, setDemoStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  // Contact form state (footer "Get Started")
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactStatus, setContactStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
   const submitDemoForm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,590 +38,486 @@ export default function LandingPage() {
     }
   };
 
+  const submitContactForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactStatus('submitting');
+    try {
+      const res = await fetch('/api/book-demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: 'Contact Form', email: contactEmail, mobile: '', company: '', address: '', message: contactMessage })
+      });
+      if (res.ok) {
+        setContactStatus('success');
+        setContactEmail('');
+        setContactMessage('');
+      } else {
+        setContactStatus('error');
+      }
+    } catch {
+      setContactStatus('error');
+    }
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setScrollPosition((prev) => (prev + 1) % 200);
-    }, 30);
-    return () => clearInterval(interval);
+    const handleScroll = () => {
+      setHeaderScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden" style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}>
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-
-        @keyframes slideInfinite {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-
-        @keyframes marqueeScroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          50% { transform: translateY(-12px); }
         }
 
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
-        .animate-slide {
-          animation: slideInfinite 20s linear infinite;
+        @keyframes slideRight {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
         }
 
-        .trust-marquee {
-          animation: marqueeScroll 15s linear infinite;
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(142, 108, 239, 0.4); }
+          50% { box-shadow: 0 0 0 12px rgba(142, 108, 239, 0); }
         }
 
-        .card-3d {
-          transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
-          transform-style: preserve-3d;
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-slideRight { animation: slideRight 0.6s ease-out forwards; }
+        .animate-pulseGlow { animation: pulseGlow 2s ease-in-out infinite; }
+
+        .hero-gradient {
+          background: linear-gradient(135deg, #f8f6ff 0%, #ede8ff 30%, #e0d6ff 50%, #f0ecff 70%, #ffffff 100%);
         }
 
-        .card-3d:hover {
-          transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
-          box-shadow: 
-            0 20px 40px rgba(91, 77, 255, 0.2),
-            0 0 100px rgba(91, 77, 255, 0.1);
+        .card-hover {
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+        .card-hover:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(142, 108, 239, 0.15);
         }
 
-        .perspective-container {
-          perspective: 1000px;
+        .benefit-card {
+          background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%);
+          transition: all 0.3s ease;
+        }
+        .benefit-card:hover {
+          transform: translateY(-6px) scale(1.02);
+          box-shadow: 0 15px 35px rgba(142, 108, 239, 0.3);
         }
 
-        .gradient-mesh {
-          background: 
-            radial-gradient(at 20% 30%, rgba(91, 77, 255, 0.15) 0px, transparent 50%),
-            radial-gradient(at 80% 70%, rgba(147, 51, 234, 0.1) 0px, transparent 50%),
-            radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+        .meet-section {
+          background: linear-gradient(180deg, #f5ebe0 0%, #fae8d4 30%, #f5ebe0 100%);
         }
 
-        .glass-effect {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+        .feature-icon-box {
+          background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
+          transition: all 0.3s ease;
         }
+        .feature-icon-box:hover {
+          transform: scale(1.05);
+        }
+
+        .stats-card {
+          transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+          transform: translateY(-4px);
+        }
+
+        .footer-gradient {
+          background: linear-gradient(180deg, #e9d5ff 0%, #ddd6fe 50%, #c4b5fd 100%);
+        }
+
+        .nav-glass {
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+
+        .nav-scrolled {
+          box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+
+        .cta-section-bg {
+          background: linear-gradient(180deg, #f0e6ff 0%, #e4d4ff 100%);
+        }
+
+        /* Smooth scrollbar */
+        html { scroll-behavior: smooth; }
       `}</style>
 
-      {/* Navigation - Same style on mobile & desktop */}
-      <nav className="fixed top-0 left-0 right-0 w-full glass-effect z-50 border-b border-gray-200">
+      {/* ===== NAVIGATION ===== */}
+      <nav className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ${headerScrolled ? 'nav-glass nav-scrolled' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 md:h-16">
+          <div className="flex justify-between items-center h-16 md:h-20">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <img src="/haylo-logo.jpg" alt="Haylo Logo" className="h-8 md:h-10 w-auto mix-blend-multiply" />
+              <img src="/haylo-logo.png" alt="Haylo Logo" className="h-8 md:h-10 w-auto" />
             </div>
 
             {/* Desktop nav links */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900 transition">Home</a>
-              <a href="#solutions" className="text-gray-600 hover:text-gray-900 transition">Solutions</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }} className="text-gray-800 hover:text-purple-600 transition font-medium text-sm">Home</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }} className="text-gray-800 hover:text-purple-600 transition font-medium text-sm">About Us</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('solution'); }} className="text-gray-800 hover:text-purple-600 transition font-medium text-sm">Solution</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('faq'); }} className="text-gray-800 hover:text-purple-600 transition font-medium text-sm">FAQs</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }} className="text-gray-800 hover:text-purple-600 transition font-medium text-sm">Contact</a>
             </div>
 
-            {/* Right side: Sign in + Book a demo + Hamburger (mobile only) */}
-            <div className="flex items-center gap-2 md:gap-4">
-              <Link href="/login" className="text-gray-600 hover:text-gray-900 transition text-xs md:text-sm font-medium">Sign in</Link>
-              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-lg hover:bg-purple-700 transition font-medium shadow-md hover:shadow-xl transform hover:scale-105 text-xs md:text-sm">
-                Book a demo
+            {/* Right side */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setDemoModalOpen(true)}
+                className="hidden md:flex items-center gap-2 bg-purple-600 text-white px-6 py-2.5 rounded-full hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm"
+              >
+                Book A Demo
               </button>
-              {/* Hamburger - mobile only */}
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-1 text-gray-700 hover:text-gray-900 transition">
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <Link href="/login" className="hidden md:flex w-10 h-10 bg-purple-600 rounded-full items-center justify-center hover:bg-purple-700 transition">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              </Link>
+              {/* Mobile hamburger */}
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-gray-700 hover:text-gray-900 transition">
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white shadow-lg">
+          <div className="md:hidden bg-white border-t border-gray-100 shadow-xl animate-fadeIn">
             <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-              <a href="#" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Home</a>
-              <a href="#solutions" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Solutions</a>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm py-3 px-3 rounded-lg transition">Sign in</Link>
-              <button onClick={() => { setDemoModalOpen(true); setMobileMenuOpen(false); }} className="bg-gray-900 text-white w-full py-3 rounded-full font-semibold text-sm mt-3">
-                Book a Demo
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }} className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">Home</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }} className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">About Us</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('solution'); }} className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">Solution</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('faq'); }} className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">FAQs</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }} className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">Contact</a>
+              <Link href="/login" className="text-gray-700 hover:text-purple-600 font-medium text-base py-3 px-3 rounded-lg transition">Sign In</Link>
+              <button onClick={() => { setDemoModalOpen(true); setMobileMenuOpen(false); }} className="bg-purple-600 text-white w-full py-3 rounded-full font-semibold text-sm mt-3">
+                Book A Demo
               </button>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-20 md:pt-32 pb-16 md:pb-24 px-4 gradient-mesh relative overflow-hidden">
+      {/* ===== HERO SECTION ===== */}
+      <section id="hero" className="hero-gradient pt-24 md:pt-32 pb-16 md:pb-24 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 md:mb-16">
-            <span className="text-purple-600 font-semibold text-xs md:text-sm uppercase tracking-wide inline-block mb-3 md:mb-4">
-              AI Receptionist for Allied Health Practices
-            </span>
-            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight">
-              Never Miss Another<br />
-              Patient Call
-            </h1>
-            <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto mb-6 md:mb-8 leading-relaxed px-2">
-              When your team is busy with patients, Haylo answers every call, captures new patient enquiries, and books appointments automatically.<br/><br/>
-              No missed calls. No overwhelmed reception desk. No lost bookings. Just a more responsive, better organised practice.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm md:text-base w-full sm:w-auto">
-                See How Haylo Handles Your Calls
-              </button>
-              <button className="border-2 border-purple-600 text-purple-600 px-6 md:px-8 py-3 md:py-3.5 rounded-lg hover:bg-purple-50 transition font-semibold flex items-center justify-center gap-2 transform hover:scale-105 text-sm md:text-base w-full sm:w-auto">
-                <Phone className="w-5 h-5" />
-                Hear Haylo Answer a Call
-              </button>
-            </div>
-          </div>
-
-          {/* 3D Tilted Stats Cards - Horizontal scroll on mobile, positioned on desktop */}
-          <div className="max-w-5xl mx-auto">
-            {/* Mobile: horizontal scroll */}
-            <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <div className="snap-center flex-shrink-0 w-[240px]">
-                <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <span className="text-[10px] text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      +5.97% <TrendingUp className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">156</div>
-                  <div className="text-xs text-gray-600">Enquiries Answered</div>
-                  <div className="text-[10px] text-gray-500 mt-1">+32 than last month</div>
-                </div>
-              </div>
-
-              <div className="snap-center flex-shrink-0 w-[240px]">
-                <div className="bg-gradient-to-br from-purple-600 via-purple-600 to-indigo-600 rounded-2xl p-5 shadow-xl text-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-[10px] font-semibold bg-white/20 backdrop-blur px-2 py-0.5 rounded-full">
-                      +250%
-                    </span>
-                  </div>
-                  <div className="text-4xl font-bold mb-1">42</div>
-                  <div className="text-xs opacity-90 mb-1">New Consultations</div>
-                  <div className="text-[10px] opacity-80">+18 than last month</div>
-                </div>
-              </div>
-
-              <div className="snap-center flex-shrink-0 w-[240px]">
-                <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Users className="w-5 h-5 text-purple-600" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
-                  <div className="text-xs text-gray-600">Leads Captured</div>
-                </div>
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
+            {/* Left content */}
+            <div className="flex-1 text-left animate-fadeInUp">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-[1.1]" style={{ letterSpacing: '-0.02em' }}>
+                Never Miss<br />Another Patient<br />Call Again
+              </h1>
+              <p className="text-base md:text-lg text-gray-600 max-w-xl mb-8 leading-relaxed">
+                Haylo is your AI receptionist for Allied Health clinics across Australia.
+                It answers calls, books appointments, and handles admin so
+                your front desk doesn&apos;t burn out.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => setDemoModalOpen(true)}
+                  className="bg-purple-600 text-white px-8 py-3.5 rounded-full hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-base"
+                >
+                  Book a Demo
+                </button>
+                <button
+                  onClick={() => scrollToSection('how-it-works')}
+                  className="border-2 border-purple-400 text-purple-700 px-8 py-3.5 rounded-full hover:bg-purple-50 transition font-semibold text-base"
+                >
+                  Listen to a Live Call
+                </button>
               </div>
             </div>
 
-            {/* Desktop: 3D tilted positioning */}
-            <div className="hidden md:block perspective-container">
-              <div className="relative h-[250px]">
-                <div className="absolute left-[5%] top-0 card-3d w-[320px]"
-                  style={{ transform: 'rotate(-6deg) translateY(20px)', zIndex: 1 }}>
-                  <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                        <Phone className="w-7 h-7 text-purple-600" />
-                      </div>
-                      <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-                        +5.97% <TrendingUp className="w-3 h-3" />
-                      </span>
-                    </div>
-                    <div className="text-4xl font-bold text-gray-900 mb-1">156</div>
-                    <div className="text-sm text-gray-600">Enquiries Answered</div>
-                    <div className="text-xs text-gray-500 mt-2">+32 than last month</div>
+            {/* Right visual - Phone with floating tags */}
+            <div className="flex-1 relative flex justify-center items-center min-h-[400px] md:min-h-[500px]">
+              {/* Floating tag - Dental practices */}
+              <div className="absolute left-0 md:left-4 top-16 md:top-20 z-20 animate-float" style={{ animationDelay: '0s' }}>
+                <div className="flex items-center gap-3 bg-purple-600 text-white px-5 py-3 rounded-2xl shadow-xl">
+                  <div className="w-10 h-10 bg-purple-800 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h-2zm0 6h2v2h-2z"/></svg>
                   </div>
-                </div>
-
-                <div className="absolute left-1/2 top-0 card-3d w-[320px]"
-                  style={{ transform: 'translateX(-50%) rotate(2deg) translateY(0px)', zIndex: 3 }}>
-                  <div className="bg-gradient-to-br from-purple-600 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-2xl text-white">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                        <Calendar className="w-7 h-7 text-white" />
-                      </div>
-                      <span className="text-xs font-semibold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
-                        +250%
-                      </span>
-                    </div>
-                    <div className="text-5xl font-bold mb-1">42</div>
-                    <div className="text-sm opacity-90 mb-2">New Consultations</div>
-                    <div className="text-xs opacity-80">+18 than last month</div>
-                  </div>
-                </div>
-
-                <div className="absolute right-[5%] top-0 card-3d w-[320px]"
-                  style={{ transform: 'rotate(6deg) translateY(20px)', zIndex: 2 }}>
-                  <div className="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                        <Users className="w-7 h-7 text-purple-600" />
-                      </div>
-                    </div>
-                    <div className="text-4xl font-bold text-gray-900 mb-1">100%</div>
-                    <div className="text-sm text-gray-600">Leads Captured</div>
-                  </div>
+                  <span className="font-semibold text-sm">Dental practices</span>
                 </div>
               </div>
+
+              {/* Floating tag - Physiotherapy Clinics */}
+              <div className="absolute right-0 md:right-0 bottom-16 md:bottom-20 z-20 animate-float" style={{ animationDelay: '1.5s' }}>
+                <div className="flex items-center gap-3 bg-purple-500/90 text-white px-5 py-3 rounded-2xl shadow-xl backdrop-blur-sm">
+                  <div className="w-10 h-10 bg-purple-700/50 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V6H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>
+                  </div>
+                  <span className="font-semibold text-sm">Physiotherapy Clinics</span>
+                </div>
+              </div>
+
+              {/* Phone image */}
+              <div className="relative z-10">
+                <img
+                  src="/hero-phone.png"
+                  alt="Haylo appointment booking interface on smartphone"
+                  className="w-[280px] md:w-[380px] h-auto object-contain drop-shadow-2xl"
+                />
+              </div>
+
+              {/* Background purple glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px] bg-purple-200/40 rounded-full blur-3xl z-0"></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          {/* Missed Calls Section (NEW) */}
-          <div className="bg-red-50 p-8 md:p-12 rounded-3xl mb-16 md:mb-24 shadow-sm border border-red-100 text-left max-w-6xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Most Allied Health clinics lose new patients every week
-            </h2>
-            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              When a potential patient calls your clinic and nobody answers, they rarely leave a voicemail. They simply call the next clinic on Google.
-            </p>
-            <p className="text-lg text-gray-800 font-semibold mb-4">That means missed calls often become:</p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 mb-8 font-medium">
-              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost new patients</li>
-              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost treatment plans</li>
-              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Lost long term clients</li>
-              <li className="flex gap-2 items-center"><span className="text-red-500 text-xl font-bold">×</span> Empty appointment slots</li>
-            </ul>
-            <p className="text-lg font-medium text-purple-700 bg-purple-50 p-6 rounded-xl mb-8">
-              Haylo ensures every call is answered, every enquiry is captured, and every booking opportunity is handled instantly.
-            </p>
-            <button className="bg-white border-2 border-purple-600 text-purple-600 px-8 py-3.5 rounded-lg hover:bg-purple-50 transition font-semibold flex items-center justify-center gap-2 transform hover:scale-105 inline-flex">
-              <Phone className="w-5 h-5" />
-              Hear Haylo Answer a Call
-            </button>
-          </div>
-
-          <p className="text-purple-600 font-semibold mb-3 md:mb-4 uppercase text-xs md:text-sm tracking-wide">
-            TRUSTED BY GROWING ALLIED HEALTH PRACTICES
-          </p>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-12 max-w-4xl mx-auto px-2 leading-relaxed">
-            Physio clinics, chiropractors, psychologists, podiatrists, speech pathologists, occupational therapists, and multidisciplinary clinics use Haylo to stay responsive and keep their calendars full.
+      {/* ===== BUILT FOR ALLIED HEALTH CLINICS ===== */}
+      <section id="about" className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50/50 to-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-10 md:mb-14">
+            Built for Allied Health Clinics Across Australia
           </h2>
-
-          {/* Desktop: grid */}
-          <div className="hidden md:grid grid-cols-5 gap-12 opacity-40">
-            {['Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise Podiatry', 'Bloom Therapy'].map((brand) => (
-              <div key={brand} className="text-xl font-bold text-gray-500 hover:opacity-100 transition">
-                {brand}
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+            {[
+              { icon: '🏥', label: 'Physiotherapy clinics' },
+              { icon: '🦷', label: 'Dental practices' },
+              { icon: '🦊', label: 'Chiropractors' },
+              { icon: '➕', label: 'NDIS providers' },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3 text-purple-600">
+                <span className="text-3xl md:text-4xl">{item.icon}</span>
+                <span className="text-base md:text-lg font-medium text-gray-700">{item.label}</span>
               </div>
             ))}
           </div>
-
-          {/* Mobile: auto-scrolling marquee */}
-          <div className="md:hidden overflow-hidden relative">
-            <div className="flex trust-marquee whitespace-nowrap gap-8 opacity-40" style={{ width: 'max-content' }}>
-              {['Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise Podiatry', 'Bloom Therapy', 'Apex Physio', 'Mindful Psychology', 'Align Chiropractic', 'StepWise', 'Bloom Therap'].map((brand, i) => (
-                <span key={`${brand}-${i}`} className="text-base font-bold text-gray-500 inline-block px-3">
-                  {brand}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Virtual Front Desk Section */}
-      <section id="solutions" className="py-24 px-4 bg-gray-50">
+      {/* ===== PROBLEM: YOUR FRONT DESK IS LOSING YOU MONEY ===== */}
+      <section className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-purple-600 font-semibold mb-4 uppercase text-sm tracking-wide">
-              THE PROBLEM
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Running a busy Allied Health practice is demanding
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Your team is focused on patient care. But the front desk is constantly managing:
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto mt-12">
-            {/* Problem List */}
-            <div className="bg-white p-10 rounded-3xl shadow-lg border border-red-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -mr-16 -mt-16 z-0"></div>
-              <div className="relative z-10">
-                <ul className="space-y-4 text-gray-800 font-medium text-lg mb-8">
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Incoming calls</li>
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Appointment bookings</li>
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Cancellations and reschedules</li>
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> New patient enquiries</li>
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Practitioner schedules</li>
-                  <li className="flex gap-3 items-center"><span className="w-2 h-2 rounded-full bg-red-400"></span> Admin tasks</li>
-                </ul>
-                <div className="p-5 bg-red-50 rounded-xl text-red-900 text-base font-semibold border border-red-100">
-                  When things get busy, something gives. That’s when calls get missed, enquiries go unanswered, and new patients move on to the next clinic that picks up.
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            {/* Left - Image with floating indicators */}
+            <div className="flex-1 relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src="/stressed-receptionist.png"
+                  alt="Stressed receptionist on the phone"
+                  className="w-full h-auto object-cover"
+                />
+                {/* 118 missed calls badge */}
+                <div className="absolute top-4 left-4 animate-float" style={{ animationDelay: '0.5s' }}>
+                  <div className="bg-white rounded-xl p-3 shadow-lg flex items-center gap-2">
+                    <div className="relative">
+                      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">118</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Low rating badge */}
+                <div className="absolute top-4 right-4 animate-float" style={{ animationDelay: '1s' }}>
+                  <div className="bg-white rounded-xl p-3 shadow-lg">
+                    <div className="flex gap-0.5 mb-1">
+                      <span className="text-purple-500">★</span>
+                      <span className="text-gray-300">★</span>
+                      <span className="text-gray-300">★</span>
+                      <span className="text-gray-300">★</span>
+                      <span className="text-gray-300">★</span>
+                    </div>
+                    <div className="w-12 h-1 bg-purple-200 rounded mb-0.5"></div>
+                    <div className="w-8 h-1 bg-purple-100 rounded"></div>
+                  </div>
+                </div>
+                {/* Sad emoji badges */}
+                <div className="absolute bottom-4 right-4 flex gap-2 animate-float" style={{ animationDelay: '2s' }}>
+                  <div className="bg-purple-100 w-10 h-10 rounded-lg flex items-center justify-center text-lg">😐</div>
+                  <div className="bg-purple-200 w-10 h-10 rounded-lg flex items-center justify-center text-lg">😐</div>
                 </div>
               </div>
             </div>
 
-            {/* Reception Overload */}
-            <div className="bg-orange-50 p-10 rounded-3xl shadow-lg border border-orange-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full -mr-16 -mt-16 z-0"></div>
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Your reception team is already stretched
-                </h3>
-                <p className="text-lg text-gray-800 mb-6">
-                  During peak hours reception staff are juggling phone calls while managing patients at the desk. That’s when missed calls happen.
-                </p>
-                <p className="text-lg text-gray-800 mb-8">
-                  Haylo works alongside your team to answer calls, handle enquiries, and capture booking requests so your staff can stay focused on patient care.
-                </p>
-                <div className="p-5 bg-white rounded-xl text-orange-900 text-base font-bold shadow-sm">
-                  Haylo doesn't replace reception.<br/>It removes the pressure from the phones.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Solution Section */}
-          <div className="max-w-6xl mx-auto mt-12 bg-gradient-to-br from-purple-600 to-indigo-600 p-10 md:p-14 rounded-3xl shadow-xl text-white text-center relative overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-tl-full blur-2xl -mr-16 -mb-16 z-0"></div>
-            <div className="relative z-10">
-              <h3 className="text-purple-200 font-bold tracking-widest text-sm mb-4">THE SOLUTION</h3>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Meet Your Virtual Receptionist</h2>
-              <h3 className="text-xl md:text-2xl font-semibold mb-8 text-purple-100">Haylo makes sure every call is answered</h3>
-              <p className="text-lg md:text-xl text-white/90 mb-6 max-w-4xl mx-auto leading-relaxed">
-                Haylo works alongside your practice to manage the constant flow of calls and enquiries that come in every day.
-              </p>
-              <p className="text-lg md:text-xl text-white/90 mb-10 max-w-4xl mx-auto leading-relaxed">
-                It answers calls instantly, handles common patient questions, books appointments, and captures new patient details automatically.
-              </p>
-              <div className="inline-block bg-white/20 backdrop-blur border border-white/30 rounded-full px-8 py-4 font-bold text-white shadow-inner text-lg">
-                So your team spends less time chasing admin and more time focused on patients.
+            {/* Right - Text content */}
+            <div className="flex-1">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                Your Front Desk<br />Is Losing You Money
+              </h2>
+              <div className="space-y-4 mb-8">
+                {[
+                  'Missed calls during peak hours',
+                  'Slow response times killing conversions',
+                  'Admin overload from bookings + follow-ups',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <span className="text-gray-700 text-base md:text-lg">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 px-4 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Built for Allied Health Businesses
-            </h3>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              Whether you run a physiotherapy clinic, chiropractic practice, psychology clinic, podiatry business, speech pathology service, occupational therapy practice, or multidisciplinary centre, Haylo helps your practice stay organised and responsive.
-            </p>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Haylo helps practices:</h4>
-            <div className="space-y-4 mb-10">
+      {/* ===== MEET HAYLO - YOUR 24/7 AI RECEPTIONIST ===== */}
+      <section id="solution" className="meet-section py-16 md:py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
+            {/* Left content */}
+            <div className="flex-1">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                Meet <span className="text-purple-600">Haylo</span>,<br />
+                Your 24/7 AI Receptionist.
+              </h2>
+              <p className="text-base md:text-lg text-gray-600 leading-relaxed max-w-xl mb-6">
+                Haylo handles every patient call for your clinic — answering instantly,
+                booking appointments, and managing admin tasks so your team can
+                focus on care, not phones.
+              </p>
+              {/* Rating badges */}
+              <div className="flex flex-col sm:flex-row gap-6 mt-8">
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl md:text-4xl font-bold text-gray-900">5.0</div>
+                  <div className="text-sm text-gray-500">/ 5 rating</div>
+                </div>
+                <div className="h-12 w-px bg-gray-300 hidden sm:block"></div>
+                <div>
+                  <div className="font-semibold text-gray-900">24/7 Availability</div>
+                  <div className="text-sm text-gray-500">Never miss a patient call</div>
+                </div>
+                <div className="h-12 w-px bg-gray-300 hidden sm:block"></div>
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl md:text-4xl font-bold text-gray-900">5.0</div>
+                  <div className="text-sm text-gray-500">/ 5 rating</div>
+                </div>
+                <div className="h-12 w-px bg-gray-300 hidden sm:block"></div>
+                <div>
+                  <div className="font-semibold text-gray-900">Instant Response</div>
+                  <div className="text-sm text-gray-500">Every call answered in seconds</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right features */}
+            <div className="flex-1 space-y-8">
               {[
-                'Answer every call during consultations',
-                'Capture new patient enquiries instantly',
-                'Book appointments directly into your calendar',
-                'Reduce reception overload during busy periods',
-                'Respond faster to new patient enquiries',
-                'Eliminate admin bottlenecks from manual booking',
-                'Prevent lost bookings from missed calls'
+                {
+                  icon: '📞',
+                  title: 'Call Handling',
+                  desc1: 'Answers every inbound call instantly',
+                  desc2: 'No more missed opportunities'
+                },
+                {
+                  icon: '📅',
+                  title: 'Smart Booking',
+                  desc1: 'Books appointments directly into your calendar',
+                  desc2: 'Syncs seamlessly with your existing systems'
+                },
+                {
+                  icon: '💬',
+                  title: 'Patient Communication',
+                  desc1: 'Handles FAQs, confirmations, and reminders',
+                  desc2: 'Professional and natural conversations'
+                },
+                {
+                  icon: '⚙️',
+                  title: 'Admin Automation',
+                  desc1: 'Handles FAQs, rescheduling, and cancellations',
+                  desc2: 'Frees up your front desk from repetitive tasks'
+                }
               ].map((feature, i) => (
-                <div key={i} className="flex items-start gap-3 transform hover:translate-x-2 transition p-2 hover:bg-purple-50 rounded-lg">
-                  <CheckCircle2 className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700 font-medium">{feature}</span>
+                <div key={i} className="flex items-start gap-5 group">
+                  <div className="feature-icon-box w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl shadow-sm">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 mb-1">{feature.title}</h4>
+                    <p className="text-gray-500 text-sm">{feature.desc1}</p>
+                    <p className="text-gray-500 text-sm">{feature.desc2}</p>
+                  </div>
                 </div>
               ))}
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 py-3.5 rounded-lg hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
-                Book a Demo
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="card-3d bg-purple-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-purple-100 text-center">
-              <Phone className="w-12 h-12 text-purple-500 mb-4" />
-              <h4 className="font-bold text-gray-900 mb-2">Always On</h4>
-              <p className="text-sm text-gray-600">Answers instantly during busy hours</p>
-            </div>
-            <div className="card-3d bg-indigo-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-indigo-100 text-center mt-12">
-              <Calendar className="w-12 h-12 text-indigo-500 mb-4" />
-              <h4 className="font-bold text-gray-900 mb-2">Smart Sync</h4>
-              <p className="text-sm text-gray-600">Knows when practitioners are free</p>
-            </div>
-            <div className="card-3d bg-blue-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-blue-100 text-center">
-              <Users className="w-12 h-12 text-blue-500 mb-4" />
-              <h4 className="font-bold text-gray-900 mb-2">Patient Focused</h4>
-              <p className="text-sm text-gray-600">Captures full details and preferences</p>
-            </div>
-            <div className="card-3d bg-green-50 rounded-3xl p-6 flex flex-col items-center justify-center shadow-sm border border-green-100 text-center mt-12">
-              <TrendingUp className="w-12 h-12 text-green-500 mb-4" />
-              <h4 className="font-bold text-gray-900 mb-2">Practice Growth</h4>
-              <p className="text-sm text-gray-600">Eliminates lost bookings entirely</p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 px-4 bg-gray-50 border-t border-gray-100">
+      {/* ===== KEY BENEFITS CARDS ===== */}
+      <section className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-              How Haylo supports your practice
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-8">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">1</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Answers every call instantly</h4>
-              <p className="text-gray-600 text-sm leading-relaxed">No voicemail. No missed enquiries. Every caller is greeted and helped immediately.</p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">2</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Books appointments automatically</h4>
-              <p className="text-gray-600 text-sm leading-relaxed">Haylo connects to your calendar and schedules appointments in real time based on availability.</p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">3</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Captures new patient enquiries</h4>
-              <p className="text-gray-600 text-sm leading-relaxed">Patient details, reason for enquiry, and booking preferences are recorded instantly.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">4</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Reduces reception overload</h4>
-              <p className="text-gray-600 text-sm leading-relaxed">Your team no longer needs to handle every incoming call during busy clinic hours.</p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">5</div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Keeps your practice responsive</h4>
-              <p className="text-gray-600 text-sm leading-relaxed">Patients receive immediate assistance, faster bookings, and a better overall experience.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Live Demo Call Section (NEW) */}
-      <section className="py-24 px-4 bg-purple-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 gradient-mesh opacity-20"></div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Call Haylo and hear it for yourself</h2>
-          <p className="text-lg md:text-xl text-purple-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-            The best way to understand Haylo is to experience it. Call the demo number below and speak with the virtual receptionist exactly like a patient would.
-          </p>
-          <p className="text-lg text-purple-200 mb-10 max-w-2xl mx-auto font-medium">
-            Try booking an appointment or asking a question.
-          </p>
-          
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl inline-block shadow-2xl">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                <Phone className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+            {[
+              { icon: '📋', text: 'Increase bookings without hiring more staff' },
+              { icon: '📵', text: 'Capture missed revenue from unanswered calls' },
+              { icon: '💆', text: 'Reduce front desk burnout' },
+              { icon: '🤝', text: 'Improve patient experience instantly' },
+              { icon: '🔄', text: 'Operate 24/7 without extra costs' },
+            ].map((item, i) => (
+              <div key={i} className="benefit-card rounded-2xl p-6 md:p-8 flex flex-col items-center text-center text-white shadow-lg">
+                <div className="w-14 h-14 rounded-full border-2 border-white/30 flex items-center justify-center text-2xl mb-4 bg-white/10">
+                  {item.icon}
+                </div>
+                <p className="text-sm md:text-base font-medium leading-snug">{item.text}</p>
               </div>
-              <div className="text-3xl md:text-5xl font-black tracking-wider">
-                03 XXXX XXXX
-              </div>
-            </div>
-            <p className="text-purple-200 text-sm font-medium mt-4">See how Haylo could support your practice in seconds.</p>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Integration Section */}
-      <section className="py-24 px-4 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
-          <div className="flex-1">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Works with your existing systems
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              Haylo connects with your calendar and booking platform so appointments, cancellations, and reschedules stay organised automatically.
-            </p>
-            <div className="bg-purple-50 border-l-4 border-purple-600 p-6 rounded-r-xl">
-              <p className="text-lg font-semibold text-gray-900 mb-2">Your team keeps working the same way.</p>
-              <p className="text-gray-700">Haylo simply removes the pressure from the phones.</p>
-            </div>
-          </div>
-          <div className="flex-1 relative w-full aspect-square md:aspect-auto md:h-96 bg-gray-50 rounded-3xl border border-gray-200 p-8 flex flex-col items-center justify-center overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 to-indigo-100/50"></div>
-             <div className="relative z-10 flex gap-4 items-center">
-                <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '0s' }}>
-                  <span className="font-bold text-gray-400">PMS</span>
-                </div>
-                <div className="flex gap-2 text-gray-300">
-                  <Infinity className="w-8 h-8" />
-                </div>
-                <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '1s' }}>
-                  <img src="/haylo-logo.jpg" alt="Haylo" className="h-8 object-contain mix-blend-multiply" />
-                </div>
-             </div>
-             <p className="relative z-10 mt-10 font-medium text-gray-600 text-center uppercase tracking-widest text-sm">Seamless Sync</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 px-4 bg-gray-50 border-t border-gray-100">
+      {/* ===== HOW IT WORKS ===== */}
+      <section id="how-it-works" className="py-16 md:py-24 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Real results from real practices
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                quote: "Before Haylo we were constantly missing calls during treatment hours. Now every enquiry gets handled and our bookings are much more consistent.",
-                author: "Practice Manager",
-                company: "Physiotherapy Clinic"
+                image: '/ai-call-handling.png',
+                title: 'AI Call Handling',
+                subtitle: 'Answers every call, every time'
               },
               {
-                quote: "Reception used to get overwhelmed during busy periods. Haylo has taken a huge amount of pressure off the team.",
-                author: "Clinic Owner",
-                company: "Allied Health Practice"
+                image: '/appointment-booking.png',
+                title: 'Appointment Booking',
+                subtitle: 'Books patients instantly'
               },
               {
-                quote: "New patient enquiries used to sit unanswered during busy days. Now they are captured instantly.",
-                author: "Director",
-                company: "Multidisciplinary Clinic"
+                image: '/patient-followup.png',
+                title: 'Patient Follow-Up',
+                subtitle: 'Automated reminders & confirmations'
               }
             ].map((item, i) => (
-              <div key={i} className="card-3d bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex flex-col">
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-purple-600 text-purple-600" />
-                  ))}
+              <div key={i} className="card-hover bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="bg-purple-50 p-6 md:p-8 flex items-center justify-center h-[220px] md:h-[280px]">
+                  <img src={item.image} alt={item.title} className="h-full w-auto object-contain max-w-[90%]" />
                 </div>
-                <p className="text-gray-700 mb-6 leading-relaxed flex-grow text-lg italic">"{item.quote}"</p>
-                <div className="border-t border-gray-100 pt-4">
-                  <div className="font-semibold text-gray-900">{item.author}</div>
-                  <div className="text-sm text-purple-600 font-medium">{item.company}</div>
+                <div className="p-6 text-center">
+                  <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">{item.title}</h4>
+                  <p className="text-gray-500 text-sm md:text-base">{item.subtitle}</p>
                 </div>
               </div>
             ))}
@@ -625,12 +525,151 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-24 px-4 bg-white">
+      {/* ===== STATS + TESTIMONIAL ===== */}
+      <section className="py-16 md:py-24 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          {/* Stats row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="stats-card bg-gray-100 rounded-2xl p-8 md:p-10">
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-1">37%</div>
+              <p className="text-gray-600 font-medium text-lg">Increase in<br />recovered calls</p>
+            </div>
+            <div className="stats-card bg-purple-400 rounded-2xl p-8 md:p-10 text-white">
+              <div className="text-5xl md:text-6xl font-bold mb-1">60%</div>
+              <p className="font-medium text-lg text-white/90">Reduction in<br />admin workload</p>
+            </div>
+            <div className="stats-card bg-gray-100 rounded-2xl p-6 md:p-8 flex items-center gap-4">
+              <img src="/testimonial-doctor.png" alt="Clinic Owner" className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover" />
+              <div>
+                <p className="text-gray-600 text-sm italic mb-2">&ldquo;Reception used to get overwhelmed during busy periods. Haylo changed everything.&rdquo;</p>
+                <p className="font-bold text-gray-900 text-sm">Clinic Owner</p>
+                <p className="text-gray-500 text-xs">Allied Health Practice</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Testimonial + Stats cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Main testimonial */}
+            <div className="bg-gray-50 rounded-2xl p-8 md:p-10 flex items-center gap-6 border border-gray-100">
+              <img src="/testimonial-doctor.png" alt="Practice Manager" className="w-24 h-32 md:w-28 md:h-36 rounded-xl object-cover flex-shrink-0" />
+              <div>
+                <p className="text-gray-700 text-base md:text-lg italic leading-relaxed mb-4">
+                  &ldquo;Before Haylo we were constantly missing calls during treatment hours. Now every enquiry gets handled and our bookings are much more consistent.&rdquo;
+                </p>
+                <p className="font-bold text-gray-900">Practice Manager</p>
+                <p className="text-gray-500 text-sm">Physiotherapy Clinic</p>
+              </div>
+            </div>
+
+            {/* 14 Days card */}
+            <div className="stats-card bg-purple-400 rounded-2xl p-8 md:p-10 text-white flex flex-col justify-between">
+              <div className="text-5xl md:text-6xl font-bold">14<span className="text-xl md:text-2xl font-normal ml-1">Days</span></div>
+              <p className="text-white/90 font-medium text-lg mt-4">Boost<br />in bookings</p>
+            </div>
+
+            {/* 24/7 card */}
+            <div className="stats-card bg-purple-100 rounded-2xl p-8 md:p-10 flex flex-col justify-between">
+              <div className="text-5xl md:text-6xl font-bold text-gray-900">24/7</div>
+              <p className="text-gray-700 font-medium text-lg mt-4">Continuous<br />patient support</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FINAL CTA SECTION ===== */}
+      <section id="contact" className="cta-section-bg py-16 md:py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+            {/* Left CTA */}
+            <div className="flex-1">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight" style={{ letterSpacing: '-0.02em' }}>
+                Stop losing<br />patients.
+              </h2>
+              <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed max-w-lg">
+                Every missed call is a lost booking. Haylo answers
+                instantly, books appointments, and keeps your clinic
+                running smoothly — even after hours.
+              </p>
+              <p className="text-base md:text-lg text-gray-700 font-medium mb-8 max-w-lg">
+                Never let another patient go elsewhere because no
+                one picked up.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => setDemoModalOpen(true)}
+                  className="bg-purple-600 text-white px-8 py-3.5 rounded-full hover:bg-purple-700 transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-base"
+                >
+                  Book a Demo
+                </button>
+                <button
+                  onClick={() => scrollToSection('how-it-works')}
+                  className="border-2 border-purple-400 text-purple-700 px-8 py-3.5 rounded-full hover:bg-white/50 transition font-semibold text-base"
+                >
+                  Hear Haylo in Action
+                </button>
+              </div>
+            </div>
+
+            {/* Right - Get Started form */}
+            <div className="flex-1 max-w-md">
+              <div className="bg-purple-200/60 backdrop-blur-sm rounded-3xl p-8 shadow-lg">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Get Started</h3>
+
+                {contactStatus === 'success' ? (
+                  <div className="text-center py-6">
+                    <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                    <p className="font-bold text-gray-900 mb-2">Request Submitted!</p>
+                    <p className="text-gray-600 text-sm">We&apos;ll be in touch shortly.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={submitContactForm} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        required
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 border-0 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-gray-900 placeholder-gray-400"
+                        placeholder="Enter your email"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                      <textarea
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 border-0 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-gray-900 placeholder-gray-400 h-28 resize-none"
+                        placeholder="What are you say ?"
+                      />
+                    </div>
+
+                    {contactStatus === 'error' && (
+                      <p className="text-red-500 text-sm">There was an error. Please try again.</p>
+                    )}
+
+                    <button
+                      disabled={contactStatus === 'submitting'}
+                      type="submit"
+                      className="w-full bg-purple-400 hover:bg-purple-500 text-white py-3.5 rounded-xl font-semibold transition flex items-center justify-center gap-2 disabled:bg-purple-300 text-base shadow-md"
+                    >
+                      {contactStatus === 'submitting' ? 'Sending...' : 'Request Demo'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FAQ SECTION ===== */}
+      <section id="faq" className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              FAQ
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Frequently Asked Questions
             </h2>
           </div>
 
@@ -656,16 +695,13 @@ export default function LandingPage() {
               <div key={i} className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-purple-300 transition-all">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full px-8 py-6 flex justify-between items-center hover:bg-gray-50 transition"
+                  className="w-full px-6 md:px-8 py-5 md:py-6 flex justify-between items-center hover:bg-gray-50 transition"
                 >
-                  <span className="font-semibold text-gray-900 text-left text-lg">{faq.q}</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-4 ${openFaq === i ? 'rotate-180' : ''
-                      }`}
-                  />
+                  <span className="font-semibold text-gray-900 text-left text-base md:text-lg">{faq.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-4 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 {openFaq === i && (
-                  <div className="px-8 pb-6 text-gray-600 leading-relaxed text-lg">
+                  <div className="px-6 md:px-8 pb-5 md:pb-6 text-gray-600 leading-relaxed text-base md:text-lg">
                     {faq.a}
                   </div>
                 )}
@@ -675,60 +711,73 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FINAL CTA Section */}
-      <section className="py-20 md:py-32 px-4 gradient-mesh relative overflow-hidden bg-purple-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight">
-            Stop losing appointments to missed calls
-          </h2>
-          <p className="text-base md:text-xl text-gray-700 mb-4 leading-relaxed px-2 font-medium">
-            If your practice is growing, missed calls and admin overload become unavoidable.
-          </p>
-          <p className="text-base md:text-xl text-gray-600 mb-10 leading-relaxed px-2">
-            Haylo ensures every enquiry is answered, every booking opportunity is captured, and your reception team stays focused on patient care.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button onClick={() => setDemoModalOpen(true)} className="bg-purple-600 text-white px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-700 transition font-semibold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
-              Start your free trial today
-            </button>
-            <button onClick={() => setDemoModalOpen(true)} className="bg-white border-2 border-purple-600 text-purple-600 px-8 md:px-12 py-3.5 md:py-4 rounded-lg hover:bg-purple-50 transition font-semibold text-base md:text-lg shadow-md hover:shadow-lg transform hover:scale-105">
-              See How Haylo Handles Your Calls
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-20 px-4">
+      {/* ===== FOOTER ===== */}
+      <footer className="footer-gradient py-16 md:py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+            {/* Left - Logo & email */}
             <div>
-              <p className="text-sm">AI Receptionist for Clinics</p>
+              <img src="/haylo-logo.png" alt="Haylo" className="h-10 md:h-12 w-auto mb-6" />
+              <p className="text-gray-600 text-sm mb-6">Get started now try our product</p>
+              <div className="flex items-center bg-white/60 backdrop-blur rounded-full p-1.5 max-w-sm shadow-sm border border-purple-200/50">
+                <input
+                  type="email"
+                  placeholder="Enter your email here"
+                  className="flex-1 px-4 py-2.5 bg-transparent border-0 outline-none text-gray-700 placeholder-gray-400 text-sm"
+                />
+                <button className="w-10 h-10 bg-purple-400 rounded-full flex items-center justify-center hover:bg-purple-500 transition flex-shrink-0">
+                  <ArrowRight className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Useful Links</h4>
-              <ul className="space-y-3 text-sm">
-                <li><Link href="/login" className="hover:text-white transition">Sign in</Link></li>
-                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact us</a></li>
-              </ul>
+
+            {/* Right - Link columns */}
+            <div className="grid grid-cols-3 gap-8">
+              <div>
+                <h4 className="font-bold text-gray-900 mb-4 text-sm">Support</h4>
+                <ul className="space-y-2.5 text-sm text-gray-600">
+                  <li><a href="#" className="hover:text-purple-600 transition">Help centre</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Account information</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">About</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Contact us</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 mb-4 text-sm">Help and Solution</h4>
+                <ul className="space-y-2.5 text-sm text-gray-600">
+                  <li><a href="#" className="hover:text-purple-600 transition">Talk to support</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Support docs</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">System status</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Covid responde</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 mb-4 text-sm">Product</h4>
+                <ul className="space-y-2.5 text-sm text-gray-600">
+                  <li><a href="#" className="hover:text-purple-600 transition">Update</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Security</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Beta test</a></li>
+                  <li><a href="#" className="hover:text-purple-600 transition">Pricing product</a></li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm gap-4">
-            <p>© Copyright 2025. Haylo All Rights Reserved.</p>
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition">Terms of Service</a>
-              <Link href="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>
+          {/* Bottom bar */}
+          <div className="border-t border-purple-300/40 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 gap-4">
+            <p>© 2025 Haylo. Copyright and rights reserved</p>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-purple-600 transition">Terms and Conditions</a>
+              <span>•</span>
+              <Link href="/privacy-policy" className="hover:text-purple-600 transition">Privacy Policy</Link>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* Book a Demo Modal */}
+      {/* ===== BOOK A DEMO MODAL ===== */}
       {isDemoModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl relative">
             <button
               onClick={() => { setDemoModalOpen(false); setDemoStatus('idle'); }}
@@ -744,7 +793,7 @@ export default function LandingPage() {
               <div className="text-center py-8">
                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h4 className="text-xl font-bold text-gray-900 mb-2">Request Submitted!</h4>
-                <p className="text-gray-600 mb-6">We've received your details and will be in touch shortly.</p>
+                <p className="text-gray-600 mb-6">We&apos;ve received your details and will be in touch shortly.</p>
                 <button
                   onClick={() => { setDemoModalOpen(false); setDemoStatus('idle'); }}
                   className="bg-purple-600 text-white w-full py-3 rounded-lg font-medium hover:bg-purple-700 transition"
@@ -756,28 +805,28 @@ export default function LandingPage() {
               <form onSubmit={submitDemoForm} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                  <input required type="text" value={demoForm.fullName} onChange={e => setDemoForm({ ...demoForm, fullName: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="Jane Doe" />
+                  <input required type="text" value={demoForm.fullName} onChange={e => setDemoForm({ ...demoForm, fullName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="Jane Doe" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Mobile *</label>
-                    <input required type="tel" value={demoForm.mobile} onChange={e => setDemoForm({ ...demoForm, mobile: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="+1 (555) 000-0000" />
+                    <input required type="tel" value={demoForm.mobile} onChange={e => setDemoForm({ ...demoForm, mobile: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="+61 400 000 000" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                    <input required type="email" value={demoForm.email} onChange={e => setDemoForm({ ...demoForm, email: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="jane@clinic.com" />
+                    <input required type="email" value={demoForm.email} onChange={e => setDemoForm({ ...demoForm, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="jane@clinic.com" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Company / Clinic Name</label>
-                  <input type="text" value={demoForm.company} onChange={e => setDemoForm({ ...demoForm, company: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="Radiance MedSpa" />
+                  <input type="text" value={demoForm.company} onChange={e => setDemoForm({ ...demoForm, company: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="Radiance MedSpa" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                  <input type="text" value={demoForm.address} onChange={e => setDemoForm({ ...demoForm, address: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="123 Wellness Ave, Suite 100" />
+                  <input type="text" value={demoForm.address} onChange={e => setDemoForm({ ...demoForm, address: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-gray-900" placeholder="123 Wellness Ave, Suite 100" />
                 </div>
 
                 {demoStatus === 'error' && (
