@@ -76,8 +76,11 @@ export default function LandingPage() {
       <nav className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ${headerScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}>
         <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center h-20 md:h-24">
-            <div className="flex items-center gap-2">
-              <img src="/haylo-logo.jpg" alt="Haylo Logo" className="h-9 md:h-11 w-auto mix-blend-multiply" />
+            <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => scrollToSection('hero')}>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-[36px] tracking-tight">HAYLO</span>
+                <span className="text-[#a824fa]"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+              </div>
             </div>
 
             <div className="hidden md:flex items-center gap-10">
@@ -149,29 +152,31 @@ export default function LandingPage() {
 
             <div className="flex-1 relative flex justify-center items-center w-full min-h-[500px]">
               {/* Dental Tag */}
-              <div className="absolute top-[10%] -left-4 md:-left-12 z-20">
-                <div className="flex items-center gap-3 bg-[#a824fa] text-white px-5 py-3.5 rounded-2xl shadow-xl">
-                   <div className="flex items-center justify-center border border-white/20 rounded-full w-6 h-6 shrink-0 text-xs font-bold font-serif">!</div>
-                  <span className="font-semibold text-[15px]">Dental practices</span>
+              <div className="absolute top-[20%] left-[-10px] md:top-[25%] md:left-0 lg:left-[-60px] z-20">
+                <div className="flex items-center gap-3 bg-[#a824fa] text-white px-5 py-3.5 rounded-full shadow-2xl">
+                  <div className="bg-white rounded-full w-9 h-9 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-[#a824fa]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7a5 5 0 00-10 0v2H7a5 5 0 000 10h10a5 5 0 000-10h-2V7z M9 9V7a3 3 0 016 0v2H9z"/></svg>
+                  </div>
+                  <span className="font-semibold text-[16px] pr-2">Dental practices</span>
                 </div>
               </div>
 
               {/* Physio Tag */}
-              <div className="absolute bottom-[10%] -right-4 md:-right-8 z-20">
-                <div className="flex items-center gap-3 bg-[#a824fa] text-white px-5 py-3.5 rounded-2xl shadow-xl">
-                  <div className="flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V6H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>
+              <div className="absolute bottom-[20%] right-[-10px] md:bottom-[15%] md:right-0 lg:right-[-40px] z-20">
+                <div className="flex items-center gap-3 bg-[#c788fd] text-white px-5 py-3.5 rounded-full shadow-2xl">
+                  <div className="bg-white rounded-full w-9 h-9 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-[#c788fd]" viewBox="0 0 24 24" fill="currentColor"><path d="M3 14h18v2H3zm16-4V8h-2v2h-4V8h-2v2H7V8H5v2H3v2h18v-2h-2z M10 4c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z"/></svg>
                   </div>
-                  <span className="font-semibold text-[15px]">Physiotherapy Clinics</span>
+                  <span className="font-semibold text-[16px] pr-2">Physiotherapy Clinics</span>
                 </div>
               </div>
 
               {/* Central Image inside white box container */}
-              <div className="relative z-10 bg-white aspect-square shadow-sm w-full max-w-[500px] flex items-center justify-center">
+              <div className="relative z-10 w-full max-w-[340px] md:max-w-[420px] lg:max-w-[480px] flex items-center justify-center">
                  <img
                   src="/hero-phone.png"
                   alt="Phone Mockup"
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-contain mix-blend-multiply drop-shadow-2xl"
                 />
               </div>
             </div>
@@ -182,29 +187,29 @@ export default function LandingPage() {
       {/* ===== FEATURES / HOW IT WORKS (ILLUSTRATIONS) ===== */}
       <section id="how-it-works" className="py-20 md:py-32 px-6 lg:px-12 bg-white">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-8">
             <div className="flex flex-col items-center">
-              <div className="mb-10 w-full rounded-3xl overflow-hidden aspect-square bg-[#f9fafb] flex items-center justify-center">
-                <img src="/ai-call-handling.png" alt="AI Call Handling" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+              <div className="mb-8 w-[95%]">
+                <img src="/ai-call-handling.png" alt="AI Call Handling" className="w-full h-auto object-contain mix-blend-multiply" />
               </div>
-              <h3 className="text-[28px] font-bold text-[#1e1e1e] mb-3 text-center">AI Call Handling</h3>
-              <p className="text-[18px] text-gray-500 text-center">Answers every call, every time</p>
+              <h3 className="text-[26px] md:text-[32px] font-bold text-[#1e1e1e] mb-2 text-center">AI Call Handling</h3>
+              <p className="text-[18px] text-[#8e8e8e] text-center font-medium">Answers every call, every time</p>
             </div>
             
             <div className="flex flex-col items-center">
-              <div className="mb-10 w-full rounded-3xl overflow-hidden aspect-square flex items-center justify-center">
-                <img src="/appointment-booking.png" alt="Appointment Booking" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+              <div className="mb-8 w-[95%]">
+                <img src="/appointment-booking.png" alt="Appointment Booking" className="w-full h-auto object-contain mix-blend-multiply" />
               </div>
-              <h3 className="text-[28px] font-bold text-[#1e1e1e] mb-3 text-center">Appointment Booking</h3>
-              <p className="text-[18px] text-gray-500 text-center">Books patients instantly</p>
+              <h3 className="text-[26px] md:text-[32px] font-bold text-[#1e1e1e] mb-2 text-center">Appointment Booking</h3>
+              <p className="text-[18px] text-[#8e8e8e] text-center font-medium">Books patients instantly</p>
             </div>
             
             <div className="flex flex-col items-center">
-              <div className="mb-10 w-full rounded-3xl overflow-hidden aspect-square flex items-center justify-center">
-                <img src="/patient-followup.png" alt="Patient Follow-Up" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+              <div className="mb-8 w-[95%]">
+                <img src="/patient-followup.png" alt="Patient Follow-Up" className="w-full h-auto object-contain mix-blend-multiply" />
               </div>
-              <h3 className="text-[28px] font-bold text-[#1e1e1e] mb-3 text-center">Patient Follow-Up</h3>
-              <p className="text-[18px] text-gray-500 text-center">Automated reminders & confirmations</p>
+              <h3 className="text-[26px] md:text-[32px] font-bold text-[#1e1e1e] mb-2 text-center">Patient Follow-Up</h3>
+              <p className="text-[18px] text-[#8e8e8e] text-center font-medium">Automated reminders & confirmations</p>
             </div>
           </div>
         </div>
@@ -213,60 +218,64 @@ export default function LandingPage() {
       {/* ===== STATS AND TESTIMONIALS GRID ===== */}
       <section className="py-16 md:py-24 px-6 lg:px-12 bg-white border-t border-gray-100">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
             
-            {/* Row 1, Col 1 */}
-            <div className="bg-[#f9fafb] rounded-[32px] p-10 flex flex-col justify-center">
-              <div className="text-[64px] md:text-[80px] font-bold text-[#1e1e1e] leading-none mb-4 tracking-[-0.03em]">37%</div>
-              <div className="text-[20px] text-[#4b5563] font-medium leading-snug">Increase in<br/>recovered calls</div>
+            {/* ROW 1 */}
+            
+            {/* 37% (col 1) */}
+            <div className="bg-white p-8 md:p-10 flex flex-col justify-center border border-gray-100 col-span-1 shadow-[0_4px_30px_rgba(0,0,0,0.03)] rounded-[32px]">
+              <div className="text-[72px] lg:text-[88px] font-bold text-[#1e1e1e] leading-none mb-4 tracking-[-0.03em] font-sans">37%</div>
+              <div className="text-[20px] lg:text-[22px] text-[#1e1e1e] font-medium leading-snug">Increase in<br/>recovered calls</div>
             </div>
             
-            {/* Row 1, Col 2 */}
-            <div className="bg-[#b975ff] rounded-[32px] p-10 flex flex-col justify-center text-white">
-              <div className="text-[64px] md:text-[80px] font-bold leading-none mb-4 tracking-[-0.03em]">60%</div>
-              <div className="text-[20px] font-medium leading-snug text-white/90">Reduction in<br/>admin workload</div>
+            {/* 60% (col 2) */}
+            <div className="bg-[#ebd5ff] p-8 md:p-10 flex flex-col justify-center col-span-1 rounded-[32px]">
+              <div className="text-[72px] lg:text-[88px] font-bold text-[#1e1e1e] leading-none mb-4 tracking-[-0.03em] font-sans">60%</div>
+              <div className="text-[20px] lg:text-[22px] text-[#1e1e1e] font-medium leading-snug">Reduction in<br/>admin workload</div>
             </div>
 
-            {/* Row 1, Col 3 - Testimonial 1 */}
-            <div className="bg-[#f9fafb] rounded-[32px] p-10 flex flex-col justify-between">
-              <p className="text-[18px] text-[#4b5563] italic leading-relaxed mb-10">
-                &ldquo;Reception used to get overwhelmed during busy periods. Haylo has taken a huge amount of pressure off the team.&rdquo;
-              </p>
-              <div className="flex items-center gap-5">
-                <img src="/testimonial-doctor.png" alt="Clinic Owner" className="w-16 h-16 rounded-xl object-cover grayscale" />
+            {/* Testimonial 1 (col 3+4) */}
+            <div className="bg-[#f9fafb] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 col-span-1 md:col-span-2 lg:col-span-2 rounded-[32px]">
+              <img src="/testimonial-doctor.png" alt="Clinic Owner" className="w-[140px] h-[140px] md:w-[220px] md:h-full object-cover shrink-0 grayscale aspect-square" />
+              <div className="flex flex-col justify-center py-2 h-full">
+                <p className="text-[20px] lg:text-[24px] text-[#4b5563] leading-relaxed mb-8 md:mb-12 font-light">
+                  "Reception used to get overwhelmed during busy periods. Haylo has taken a huge amount of pressure off the team."
+                </p>
                 <div>
-                  <div className="font-bold text-[#1e1e1e] text-[18px]">Clinic Owner</div>
-                  <div className="text-[#6b7280] text-[15px]">Allied Health Practice</div>
+                  <div className="font-bold text-[#1e1e1e] text-[20px]">Clinic Owner</div>
+                  <div className="text-[#1e1e1e] text-[18px]">Allied Health Practice</div>
                 </div>
               </div>
             </div>
 
-            {/* Row 2, Col 1 - Testimonial 2 */}
-            <div className="bg-[#f9fafb] rounded-[32px] p-10 flex flex-col justify-between lg:col-start-1">
-              <p className="text-[18px] text-[#4b5563] italic leading-relaxed mb-10">
-                &ldquo;Before Haylo we were constantly missing calls during treatment hours. Now every enquiry gets handled and our bookings are much more consistent.&rdquo;
-              </p>
-              <div className="flex items-center gap-5">
-                <img src="/testimonial-doctor.png" alt="Practice Manager" className="w-16 h-16 rounded-xl object-cover grayscale" />
+            {/* ROW 2 */}
+
+            {/* Testimonial 2 (col 1+2) */}
+            <div className="bg-[#f9fafb] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 col-span-1 md:col-span-2 lg:col-span-2 rounded-[32px]">
+              <img src="/testimonial-doctor.png" alt="Practice Manager" className="w-[140px] h-[140px] md:w-[220px] md:h-full object-cover shrink-0 grayscale aspect-square" />
+              <div className="flex flex-col justify-center py-2 h-full">
+                <p className="text-[20px] lg:text-[24px] text-[#4b5563] leading-relaxed mb-8 md:mb-12 font-light">
+                  "Before Haylo we were constantly missing calls during treatment hours. Now every enquiry gets handled and our bookings are much more consistent."
+                </p>
                 <div>
-                  <div className="font-bold text-[#1e1e1e] text-[18px]">Practice Manager</div>
-                  <div className="text-[#6b7280] text-[15px]">Physiotherapy Clinic</div>
+                  <div className="font-bold text-[#1e1e1e] text-[20px]">Practice Manager</div>
+                  <div className="text-[#1e1e1e] text-[18px]">Physiotherapy Clinic</div>
                 </div>
               </div>
             </div>
 
-            {/* Row 2, Col 2 */}
-            <div className="bg-[#b975ff] rounded-[32px] p-10 flex flex-col justify-between text-white lg:col-start-2">
-              <div className="text-[64px] md:text-[80px] font-bold leading-none tracking-[-0.03em] flex items-baseline">
-                14<span className="text-[32px] md:text-[40px] font-normal ml-2">Days</span>
+            {/* 14 Days (col 3) */}
+            <div className="bg-[#b975ff] p-8 md:p-10 flex flex-col justify-between text-white col-span-1 rounded-[32px]">
+              <div className="text-[72px] lg:text-[88px] font-bold leading-none tracking-[-0.03em] flex items-baseline font-sans">
+                14<span className="text-[32px] lg:text-[36px] font-medium ml-1">Days</span>
               </div>
-              <div className="text-[20px] font-medium leading-snug text-white/90 mt-8">Boost<br/>in bookings</div>
+              <div className="text-[20px] lg:text-[22px] font-medium leading-snug mt-auto mb-2 lg:mt-16">Boost<br/>in bookings</div>
             </div>
 
-            {/* Row 2, Col 3 */}
-            <div className="bg-[#ffffff] border border-gray-100 rounded-[32px] p-10 flex flex-col justify-between lg:col-start-3 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
-              <div className="text-[64px] md:text-[80px] font-bold text-[#1e1e1e] leading-none tracking-[-0.03em]">24/7</div>
-              <div className="text-[20px] text-[#4b5563] font-medium leading-snug mt-8">Continuous<br/>patient support</div>
+            {/* 24/7 (col 4) */}
+            <div className="bg-white border border-gray-100 p-8 md:p-10 flex flex-col justify-between col-span-1 shadow-[0_4px_30px_rgba(0,0,0,0.03)] rounded-[32px]">
+              <div className="text-[72px] lg:text-[88px] font-bold text-[#1e1e1e] leading-none tracking-[-0.03em] font-sans">24/7</div>
+              <div className="text-[20px] lg:text-[22px] text-[#1e1e1e] font-medium leading-snug mt-auto mb-2 lg:mt-16">Continuous<br/>patient support</div>
             </div>
 
           </div>
