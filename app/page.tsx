@@ -179,7 +179,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16 md:h-20">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <img src="/haylo-logo.png" alt="Haylo Logo" className="h-8 md:h-10 w-auto" />
+              <img src="/haylo-logo.jpg" alt="Haylo Logo" className="h-8 md:h-10 w-auto mix-blend-multiply" />
             </div>
 
             {/* Desktop nav links */}
@@ -717,7 +717,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
             {/* Left - Logo & email */}
             <div>
-              <img src="/haylo-logo.png" alt="Haylo" className="h-10 md:h-12 w-auto mb-6" />
+              <img src="/haylo-logo.jpg" alt="Haylo" className="h-10 md:h-12 w-auto mb-6 mix-blend-multiply" />
               <p className="text-gray-600 text-sm mb-6">Get started now try our product</p>
               <div className="flex items-center bg-white/60 backdrop-blur rounded-full p-1.5 max-w-sm shadow-sm border border-purple-200/50">
                 <input
