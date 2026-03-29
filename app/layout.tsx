@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Haylo - AI Receptionist for Allied Health Clinics",
-  description: "Never miss another patient call. Haylo is your 24/7 AI receptionist for Allied Health clinics across Australia. Answers calls, books appointments, and handles admin.",
+  description: "Never miss another patient call. Haylo is your 24/7 AI receptionist for Allied Health clinics across Australia.",
 };
 
 export default function RootLayout({
