@@ -44,7 +44,7 @@ export function HeroSection({
 
           <div className="lg:col-span-3 relative flex justify-center items-center">
             <img
-              src="/hero.svg"
+              src="/images/hero.png"
               alt="Haylo App"
               width="100%"
               className="w-full max-w-[28rem] object-contain mix-blend-multiply lg:max-w-none"
@@ -80,7 +80,7 @@ export function ProblemSection() {
           <div className="w-full max-w-[32rem] lg:max-w-none lg:w-[55%] relative">
             <div className="overflow-hidden relative">
               <img
-                src="/losing_money.svg"
+                src="/images/stressed.png"
                 alt="Stressed Receptionist"
                 className="w-full h-auto object-cover rounded-3xl"
               />
