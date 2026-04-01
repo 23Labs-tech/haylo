@@ -95,7 +95,7 @@ export function StatsTestimonialsSection() {
           </div>
           <div className="bg-[#FAFAFA] flex flex-col md:flex-row items-center gap-4 col-span-1 md:col-span-2 lg:col-span-2 rounded-none overflow-hidden">
             <img
-              src="/images/testimonial_doctor.svg"
+              src="/images/testimonial_doctor.png"
               alt="Clinic Owner"
               className="h-56 w-full object-cover md:h-67.5 md:w-52.75"
             />
@@ -116,7 +116,7 @@ export function StatsTestimonialsSection() {
           </div>
           <div className="bg-[#FAFAFA] flex flex-col md:flex-row items-center gap-4 col-span-1 md:col-span-2 lg:col-span-2 rounded-none overflow-hidden">
             <img
-              src="/images/testimonial_doctor_1.svg"
+              src="/images/testimonial_doctor_1.png"
               alt="Practice Manager"
               className="h-56 w-full object-cover shrink-0 md:h-67.5 md:w-52.75 md:aspect-square"
             />

@@ -50,19 +50,19 @@ export const BENEFITS = [
 
 export const CORE_FEATURES = [
   {
-    image: "/images/call_handling.svg",
+    image: "/images/call_handling.png",
     alt: "AI Call Handling",
     title: "AI Call Handling",
     description: "Answers every call, every time",
   },
   {
-    image: "/images/appointment_booking.svg",
+    image: "/images/appointment_booking.png",
     alt: "Appointment Booking",
     title: "Appointment Booking",
     description: "Books patients instantly",
   },
   {
-    image: "/images/patient_followup.svg",
+    image: "/images/patient_followup.png",
     alt: "Patient Follow-Up",
     title: "Patient Follow-Up",
     description: "Automated reminders & confirmations",
