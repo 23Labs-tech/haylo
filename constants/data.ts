@@ -31,11 +31,11 @@ export const BENEFITS = [
     icon: "/icons/increase_bookings.svg",
   },
   {
-    title: ["Capture missed revenue", "from unanswered calls"],
+    title: ["Capture missed", "revenue from calls today"],
     icon: "/icons/missed_calls.svg",
   },
   {
-    title: ["Reduce front desk", "burnout"],
+    title: ["Reduce front desk", " burnout improve focus"],
     icon: "/icons/reduce_burnout.svg",
   },
   {
@@ -86,5 +86,5 @@ export const PAIN_POINTS = [
   "Patients going elsewhere when no one answers",
   "Staff stuck on phones instead of patients",
   "Slow response times killing conversions",
-  "Admin overload from bookings + follow-ups"
+  "Admin overload from bookings + follow-ups",
 ];

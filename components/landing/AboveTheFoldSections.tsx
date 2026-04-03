@@ -60,7 +60,7 @@ export function AlliedHealthSection() {
   return (
     <section
       id="about"
-      className="s md:pb-24 pb-8 max-w-[1300px] mx-auto relative z-10"
+      className="s md:pb-24 pb-8 lg:max-w-325 w-full mx-auto relative z-10"
     >
       <div className="mx-auto px-6 lg:px-8">
         <h2 className="text-[25px] md:text-[32px] font-bold text-center text-[#1e1e1e]">

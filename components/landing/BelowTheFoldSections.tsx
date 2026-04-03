@@ -18,7 +18,7 @@ export function BenefitsSection() {
               key={index}
               className="bg-[#C782F9] rounded-[10px] px-4 py-5 md:p-4 flex min-h-[184px] flex-col items-center justify-center text-center sm:aspect-square md:min-h-0 md:aspect-auto lg:aspect-square"
             >
-              <div className="bg-[#FEF2F2] rounded-full w-14 h-14 md:w-18 md:h-18 flex items-center justify-center mb-4 md:mb-6 shadow-sm shrink-0">
+              <div className="bg-[#FEF2F2] rounded-full w-12 h-12 md:w-15 md:h-15 flex items-center justify-center mb-4 md:mb-6 shadow-sm shrink-0">
                 <img src={item.icon} alt="icon" className="h-7 w-7 md:h-auto md:w-auto" />
               </div>
 

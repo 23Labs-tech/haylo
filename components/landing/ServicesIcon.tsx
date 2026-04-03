@@ -3,11 +3,11 @@ import Image from "next/image";
 
 const ServiceIcons = () => {
   return (
-    <div>
-      <div className="flex flex-wrap justify-center md:justify-end gap-5 md:gap-20 items-center mt-6">
+    <div >
+      <div className="flex  flex-wrap justify-center gap-5 md:gap-x-20 items-center mt-6">
         {SERVICES.slice(0, 4).map((service) => (
           <div key={service.label} className="flex gap-4 items-center">
-            <div className="w-10 h-10 md:w-[48px] md:h-[48px] flex items-center justify-center">
+            <div className="w-10 h-10 lg:w-12 lg:h-12  flex items-center justify-center">
               <Image
                 src={service.icon}
                 alt={service.label}
@@ -22,10 +22,10 @@ const ServiceIcons = () => {
           </div>
         ))}
       </div>
-      <div className="flex flex-wrap justify-center gap-5 md:gap-20 items-center mt-6">
+      <div className="flex flex-wrap justify-center gap-5  md:gap-x-16 items-center mt-6">
         {SERVICES.slice(4, 9).map((service) => (
           <div key={service.label} className="flex gap-4 items-center">
-            <div className="w-10 h-10 md:w-[48px] md:h-[48px] flex items-center justify-center">
+            <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
               <Image
                 src={service.icon}
                 alt={service.label}
