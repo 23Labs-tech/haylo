@@ -73,7 +73,7 @@ export function StatsTestimonialsSection() {
     <section className="pb-18 md:pb-32 pt-8 md:pt-10 md:px-15 lg:px-25 px-5">
       <div className="mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 md:auto-rows-fr">
-          <div className="bg-[#F9F3FE] p-4 md:p-5 flex flex-col justify-between h-40 md:h-68 md:max-h-68 col-span-1 rounded-none">
+          <div className="bg-[#F9F3FE] p-4 md:p-5 flex flex-col justify-between min-h-44  col-span-1 rounded-none">
             <div className="text-[32px] lg:text-[58px] font-semibold text-[#1e1e1e] leading-none tracking-[-0.03em]">
               37%
             </div>
@@ -83,7 +83,7 @@ export function StatsTestimonialsSection() {
               recovered calls
             </div>
           </div>
-          <div className="bg-[#cd9cff] p-4 md:p-5 flex flex-col justify-between min-h-44 md:h-68 md:max-h-68 col-span-1 rounded-none">
+          <div className="bg-[#cd9cff] p-4 md:p-5 flex flex-col justify-between min-h-44  col-span-1 rounded-none">
             <div className="text-[32px] lg:text-[58px] font-semibold text-[#1e1e1e] leading-none mb-3 md:mb-4 tracking-[-0.03em] font-sans">
               60%
             </div>
@@ -97,7 +97,7 @@ export function StatsTestimonialsSection() {
             <img
               src="/images/testimonial_doctor.png"
               alt="Clinic Owner"
-              className="h-56 w-full object-cover md:h-67.5 md:w-52.75"
+              className=" w-full object-cover md:h-full md:w-52.75"
             />
             <div className="flex h-full flex-col justify-between px-4 pb-5 pt-1 md:px-0 md:py-4 md:pr-4">
               <p className="text-[17px] lg:text-[22px] text-[#2c323f] leading-relaxed mb-5 md:mb-8 font-light">
@@ -118,10 +118,10 @@ export function StatsTestimonialsSection() {
             <img
               src="/images/testimonial_doctor_1.png"
               alt="Practice Manager"
-              className="h-56 w-full object-cover shrink-0 md:h-67.5 md:w-52.75 md:aspect-square"
+              className="h-full w-full object-cover shrink-0 md:w-52.75 md:aspect-square"
             />
-            <div className="flex h-full flex-col justify-between px-4 pb-5 pt-1 md:px-0 md:py-4 md:pr-4">
-              <p className="text-[17px] lg:text-[22px] text-[#2c323f] leading-relaxed mb-5 md:mb-8 font-light">
+            <div className="flex h-full flex-col px-4 pb-5 pt-1 md:px-0  md:pr-4">
+              <p className="text-[17px] lg:text-[22px] text-[#2c323f] l mb-5 md:mb-8 font-light">
                 &quot;Before Haylo we were constantly missing calls during
                 treatment hours. Now every enquiry gets handled and our bookings
                 are much more consistent.&quot;
