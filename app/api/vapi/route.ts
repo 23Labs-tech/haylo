@@ -133,7 +133,8 @@ export async function POST(request: Request) {
                 provider: "11labs",
                 voiceId: "bIHbv24MWmeRgasZH58o", // Will (Standard public voice)
             },
-            firstMessage: greeting
+            firstMessage: greeting,
+            serverUrl: "https://cypk23.app.n8n.cloud/webhook/94bd9da8-4db8-4e6b-897a-daca90aae8c1"
         };
 
         // 15-second timeout for VAPI calls so the button never gets permanently stuck

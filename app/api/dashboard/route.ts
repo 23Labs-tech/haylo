@@ -75,44 +75,35 @@ export async function GET() {
             });
         }
 
-        // 2. Fetch calls from Vapi API for this specific assistant
-        const vapiKey = process.env.VAPI_PRIVATE_KEY;
-        let vapiCalls: any[] = [];
+        // 2. Fetch calls from Supabase call_logs table for this specific assistant
+        const { data: dbCalls, error: callsError } = await supabaseAdmin
+            .from('call_logs')
+            .select('*')
+            .eq('assistant_id', assistantId)
+            .order('startedAt', { ascending: false })
+            .limit(50);
 
-        if (vapiKey) {
-            try {
-                const vapiRes = await fetch('https://api.vapi.ai/call?limit=50', {
-                    headers: {
-                        'Authorization': `Bearer ${vapiKey}`
-                    }
-                });
-
-                if (vapiRes.ok) {
-                    const allCalls = await vapiRes.json();
-                    // Filter calls for THIS user's assistant only
-                    vapiCalls = (Array.isArray(allCalls) ? allCalls : []).filter(
-                        (call: any) => call.assistantId === assistantId
-                    );
-                }
-            } catch (e) {
-                console.error('Failed to fetch Vapi calls:', e);
-            }
+        if (callsError) {
+            console.error('Failed to fetch calls from database:', callsError);
+            return NextResponse.json({
+                calls: [],
+                stats: { totalCalls: 0, bookings: 0, followUps: 0, satisfaction: 0 },
+                clinicName,
+                hasAssistant: true
+            });
         }
 
-        // 3. Transform call data
-        const calls = vapiCalls.map((call: any) => ({
+        // 3. Transform call data (already in correct format from database)
+        const calls = (dbCalls || []).map((call: any) => ({
             id: call.id,
             status: call.status || 'unknown',
             type: call.type || 'inbound',
-            startedAt: call.startedAt || call.createdAt || '',
+            startedAt: call.startedAt || '',
             endedAt: call.endedAt || '',
-            duration: call.endedAt && call.startedAt
-                ? Math.round((new Date(call.endedAt).getTime() - new Date(call.startedAt).getTime()) / 1000)
-                : 0,
-            customer: call.customer?.number || 'Unknown',
-            summary: call.analysis?.summary || call.transcript || '',
+            duration: call.duration || 0,
+            customer: call.customer || 'Unknown',
+            summary: call.summary || call.transcript || '',
             transcript: call.transcript || '',
-            costBreakdown: call.costBreakdown || null,
             endedReason: call.endedReason || ''
         }));
 
