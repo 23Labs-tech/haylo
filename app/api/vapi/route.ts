@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { AI_MODELS, DEFAULT_AI_MODEL } from '@/constants/models';
+import OpenAI from 'openai';
+import { VAPI_REFINEMENT_SYSTEM_PROMPT } from '@/constants/vapiPromptingGuidelines';
 
 // Admin client that bypasses RLS for profile updates
 function getSupabaseAdmin() {
@@ -106,17 +109,91 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Server misconfiguration: VAPI private key is missing.' }, { status: 500 });
         }
 
-        const { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel } = await request.json();
+        const { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel, voiceId } = await request.json();
 
-        // Parse Model selection (format: "provider|modelName", eg. "openai|gpt-4o")
-        const [provider, modelName] = (aiModel || 'openai|gpt-3.5-turbo').split('|');
+        // Validate all required fields
+        const requiredFields = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt };
+        for (const [field, value] of Object.entries(requiredFields)) {
+            if (!value || (typeof value === 'string' && value.trim() === '')) {
+                return NextResponse.json({ error: `${field} is required and cannot be empty.` }, { status: 400 });
+            }
+        }
 
-        // 4. Construct the new system prompt
-        let prompt = `You are a helpful AI receptionist named ${botName} working for ${clinicName} at the ${location} branch.\n\nKnowledge Base:\n${knowledgeBase}\n\nOperating Hours:\n${hours}\n\nAlways be polite and professional. Admin email is ${adminEmail} and phone is ${adminPhone}.`;
+        // Validate and parse Model selection (format: "provider|modelName", eg. "openai|gpt-4o")
+        const selectedModel = aiModel || DEFAULT_AI_MODEL;
+        const isValidModel = AI_MODELS.some(m => m.id === selectedModel);
 
-        // Append custom user prompt
+        if (!isValidModel) {
+            return NextResponse.json({ error: `Unsupported AI model: ${selectedModel}` }, { status: 400 });
+        }
+
+        const [provider, modelName] = selectedModel.split('|');
+
+        // 4. Build base prompt and refine it with AI
+        const basePrompt = `You are ${botName}, a professional AI receptionist for ${clinicName} located at ${location}.
+
+ROLE:
+You handle inbound phone calls for a healthcare clinic. You are warm, calm, professional, and empathetic. You speak Australian English naturally.
+
+CLINIC INFORMATION:
+- Practice: ${clinicName}
+- Location: ${location}
+- Operating Hours: ${hours}
+- Admin Email: ${adminEmail}
+- Admin Phone (for transfers): ${adminPhone}
+
+SERVICES & KNOWLEDGE:
+${knowledgeBase}
+
+CALL HANDLING GUIDELINES:
+1. APPOINTMENTS: Help callers enquire about availability and services. Do not book directly unless instructed — offer to take a message or direct to the online booking system if available.
+2. CANCELLATIONS: Acknowledge and note the request. Always remind callers of the cancellation policy.
+3. GENERAL ENQUIRIES: Answer based on the services and knowledge provided above. If unsure, offer to take a message.
+4. EMERGENCIES: If a caller describes a medical emergency, immediately advise them to call 000 and do not delay.
+5. ESCALATION: If a caller is distressed or requests to speak to a human, offer to transfer to ${adminPhone} or take a message for a callback.
+
+IMPORTANT RULES:
+- Never provide specific medical advice or diagnoses.
+- Maintain patient privacy and confidentiality at all times.
+- Keep responses concise — callers are on the phone, not reading.
+- Always confirm the caller's name and contact number when taking a message.`;
+
+        let promptWithOverrides = basePrompt;
         if (customPrompt && customPrompt.trim() !== '') {
-            prompt += `\n\nAdditional Instructions:\n${customPrompt}`;
+            promptWithOverrides += `\n\nCLINIC-SPECIFIC OVERRIDES:\n${customPrompt}`;
+        }
+
+        // Refine the prompt with OpenAI to follow Vapi best practices
+        let prompt = promptWithOverrides;
+        const openaiKey = process.env.OPENAI_API_KEY;
+        if (openaiKey) {
+            try {
+                const openai = new OpenAI({ apiKey: openaiKey });
+                const completion = await openai.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    temperature: 0.3,
+                    max_tokens: 2000,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: VAPI_REFINEMENT_SYSTEM_PROMPT
+                        },
+                        {
+                            role: 'user',
+                            content: `Here is the current system prompt to restructure:\n\n${promptWithOverrides}`
+                        }
+                    ]
+                });
+                const refinedContent = completion.choices[0]?.message?.content?.trim();
+                if (refinedContent) {
+                    prompt = refinedContent;
+                }
+            } catch (openaiError: any) {
+                console.error('OpenAI refinement error:', openaiError?.message);
+                console.warn('Falling back to unrefined prompt');
+            }
+        } else {
+            console.warn('OPENAI_API_KEY not set, using unrefined prompt');
         }
 
         // Create the VAPI payload that works for both creation and updating
@@ -131,7 +208,7 @@ export async function POST(request: Request) {
             },
             voice: {
                 provider: "11labs",
-                voiceId: "bIHbv24MWmeRgasZH58o", // Will (Standard public voice)
+                voiceId: voiceId || "XB0fDUnXU5powFXDhCwa", // Charlotte (Australian female, default)
             },
             firstMessage: greeting,
             serverUrl: "https://cypk23.app.n8n.cloud/webhook/94bd9da8-4db8-4e6b-897a-daca90aae8c1"
@@ -206,7 +283,7 @@ export async function POST(request: Request) {
         }
 
         // Save metadata into Supabase using ADMIN client so we can fetch it when they log in later!
-        const settingsPayload = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel };
+        const settingsPayload = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel, voiceId: voiceId || "XB0fDUnXU5powFXDhCwa" };
         const { error: settingsError } = await supabaseAdmin.from('profiles').update({
             clinic_name: clinicName,
             settings_json: JSON.stringify(settingsPayload)
