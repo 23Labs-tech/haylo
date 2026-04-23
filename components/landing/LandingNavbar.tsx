@@ -98,16 +98,20 @@ export function LandingNavbar({
             <DropdownMenu open={mobileMenuOpen} onOpenChange={onMobileMenuChange}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="rounded-full border border-[#ead8fb] bg-white/90 p-2.5 shadow-sm lg:hidden"
+                  className="lg:hidden text-[#000000] p-0 bg-transparent border-0 shadow-none"
                   aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 >
-                  {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                  {mobileMenuOpen ? (
+                    <X className="w-7 h-7" strokeWidth={2.8} />
+                  ) : (
+                    <Menu className="w-7 h-7" strokeWidth={2.8} />
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
                 sideOffset={12}
-                className="w-[calc(100vw-2.5rem)] max-w-[22rem] rounded-[28px] border-[#efe4fb] bg-white/98 p-3 shadow-2xl lg:hidden"
+                className="w-[calc(100vw-2.5rem)] max-w-[24rem] rounded-[28px] border-[#efe4fb] bg-white/98 p-3 shadow-2xl lg:hidden"
               >
                 <DropdownMenuLabel className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#8d71ab]">
                   Navigate

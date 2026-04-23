@@ -35,7 +35,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${urbanist.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <div className="bg-gradient-to-br from-[#C782F9]/20 via-[#fcfaff] to-[#f3ebfa]/40">
+        <div className="bg-white lg:bg-gradient-to-br lg:from-[#C782F9]/20 lg:via-[#fcfaff] lg:to-[#f3ebfa]/40">
           {children}
         </div>
       </body>

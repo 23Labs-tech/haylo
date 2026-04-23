@@ -12,6 +12,7 @@ import {
 import {
   BenefitsSection,
   ContactSection,
+  FAQSection,
   HowItWorksSection,
   LandingFooter,
   StatsTestimonialsSection,
@@ -127,6 +128,7 @@ export default function LandingPage() {
       <BenefitsSection />
       <HowItWorksSection />
       <StatsTestimonialsSection />
+      <FAQSection />
       <ContactSection
         onOpenDemoModal={openDemoModal}
         contactEmail={contactEmail}

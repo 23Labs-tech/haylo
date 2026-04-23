@@ -72,12 +72,12 @@ export const CORE_FEATURES = [
 export const SERVICES = [
   { icon: "/icons/clinic_1.svg", label: "Physiotherapy clinics" },
   { icon: "/icons/dental.svg", label: "Dental practices" },
-  { icon: "/icons/clinic_2.svg", label: "Optometrists" },
-  { icon: "/icons/bxs_clinic.svg", label: "Podiatrists" },
-  { icon: "/icons/clinic_1.svg", label: "Orthopedics" },
-  { icon: "/icons/dental.svg", label: "Chiropractors" },
-  { icon: "/icons/clinic_2.svg", label: "NDIS providers" },
-  { icon: "/icons/bxs_clinic.svg", label: "Osteopaths" },
+  { icon: "/icons/optometrists.svg", label: "Optometrists" },
+  { icon: "/icons/podiatrists.svg", label: "Podiatrists" },
+  { icon: "/icons/orthopedics.svg", label: "Orthopedics" },
+  { icon: "/icons/clinic_2.svg", label: "Chiropractors" },
+  { icon: "/icons/dental.svg", label: "NDIS providers" },
+  { icon: "/icons/osteopaths.svg", label: "Osteopaths" },
   { icon: "/icons/bxs_clinic.svg", label: "+ MORE" },
 ];
 

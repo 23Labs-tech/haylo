@@ -19,9 +19,9 @@ export function BookDemoButton({
     <button
       type={type}
       className={cn(
-        "rounded-full bg-[#9810FA] font-semibold text-white transition hover:bg-[#911fdb]",
-        "h-11 px-6 text-[15px] lg:h-12.5 lg:text-[16px]",
-        fullWidthOnMobile ? "w-full lg:w-57.25" : "w-fit lg:w-57.25",
+        "inline-flex items-center justify-center rounded-full bg-[#9810FA] font-semibold text-white transition hover:bg-[#911fdb]",
+        "h-11 px-6 text-[15px] lg:h-[64px] lg:px-12 lg:text-[18px]",
+        fullWidthOnMobile ? "w-full lg:w-[229px]" : "w-fit lg:w-[229px]",
         className
       )}
       {...props}
