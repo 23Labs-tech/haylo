@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Settings,
     MessageSquare,
@@ -14,7 +14,10 @@ import {
     Smartphone,
     Download,
     Volume2,
-    AlertCircle
+    AlertCircle,
+    PlayCircle,
+    StopCircle,
+    Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VOICE_OPTIONS } from '@/constants/voices';
@@ -54,6 +57,10 @@ export default function SettingsPage() {
     const [hasAssistant, setHasAssistant] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
+    const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+    const [provisioningPhone, setProvisioningPhone] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         const fetchProfileAndPhone = async () => {
@@ -125,6 +132,13 @@ export default function SettingsPage() {
         fetchProfileAndPhone();
     }, []);
 
+    useEffect(() => {
+        return () => {
+            audioRef.current?.pause();
+            audioRef.current = null;
+        };
+    }, []);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({
             ...formData,
@@ -136,6 +150,49 @@ export default function SettingsPage() {
             setErrors({ ...errors, [e.target.name]: '' });
         }
     };
+
+    const handleVoicePreview = useCallback(async (voiceId: string) => {
+        if (previewingVoiceId === voiceId || previewLoadingId === voiceId) {
+            audioRef.current?.pause();
+            audioRef.current = null;
+            setPreviewingVoiceId(null);
+            setPreviewLoadingId(null);
+            return;
+        }
+        audioRef.current?.pause();
+        audioRef.current = null;
+        setPreviewingVoiceId(null);
+        setPreviewLoadingId(voiceId);
+        try {
+            const audio = new Audio(`/api/voice-preview?voiceId=${voiceId}`);
+            audioRef.current = audio;
+            audio.onended = () => {
+                setPreviewingVoiceId(null);
+            };
+            audio.onerror = (e) => {
+                console.error('Audio playback error:', e);
+                console.error('Audio error code:', audio.error?.code, 'message:', audio.error?.message);
+                setPreviewingVoiceId(null);
+                setPreviewLoadingId(null);
+                toast.error('Failed to play voice preview.');
+            };
+            audio.onloadstart = () => {
+                setPreviewLoadingId(null);
+                setPreviewingVoiceId(voiceId);
+            };
+            await audio.play().catch(err => {
+                console.error('Play error:', err);
+                toast.error('Failed to play audio.');
+                setPreviewLoadingId(null);
+                setPreviewingVoiceId(null);
+            });
+        } catch (err) {
+            console.error('Preview error:', err);
+            setPreviewLoadingId(null);
+            setPreviewingVoiceId(null);
+            toast.error('Network error loading voice preview.');
+        }
+    }, [previewingVoiceId, previewLoadingId]);
 
     const handleImportChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setImportData({
@@ -173,6 +230,37 @@ export default function SettingsPage() {
             toast.error("Network error. Please try again.");
         } finally {
             setImporting(false);
+        }
+    };
+
+    const handleGetNewNumber = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setProvisioningPhone(true);
+
+        try {
+            const response = await fetch('/api/vapi/phone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    areaCode: areaCode
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                toast.error(`Error: ${data.error}`);
+            } else {
+                setPhoneNumber(data.phoneNumber);
+                toast.success(`Phone number ${data.phoneNumber} provisioned successfully!`);
+            }
+        } catch (err) {
+            console.error("Failed to get new number:", err);
+            toast.error("Network error. Please try again.");
+        } finally {
+            setProvisioningPhone(false);
         }
     };
 
@@ -355,6 +443,53 @@ if (loading) {
                 )}
             </div>}
 
+            {/* Get New Phone Number Section */}
+            {hasAssistant && !phoneNumber && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4 flex items-center gap-3">
+                        <Phone className="w-5 h-5 text-green-600" />
+                        <h2 className="text-lg font-bold text-gray-900">Provision a Phone Number</h2>
+                    </div>
+                    <div className="p-6">
+                        <p className="text-sm text-gray-600 mb-4">
+                            Get a new dedicated phone number for your AI receptionist to answer calls.
+                        </p>
+                        <form onSubmit={handleGetNewNumber} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-gray-700">Area Code</label>
+                                <input
+                                    type="text"
+                                    value={areaCode}
+                                    onChange={(e) => setAreaCode(e.target.value)}
+                                    placeholder="e.g. 415"
+                                    minLength={3}
+                                    maxLength={3}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow outline-none text-gray-900"
+                                />
+                                <p className="text-xs text-gray-500">Enter a 3-digit area code (e.g., 020 for Sydney, 415 for San Francisco).</p>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={provisioningPhone}
+                                className="w-full px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow font-medium transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                            >
+                                {provisioningPhone ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Provisioning...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Phone className="w-4 h-4" />
+                                        Get New Number
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSave} className="space-y-8">
                 {/* Clinic Profile Section */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -473,7 +608,7 @@ if (loading) {
                                             key={voice.id}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, voiceId: voice.id })}
-                                            className={`p-3 rounded-lg border-2 transition-all text-center ${
+                                            className={`p-3 rounded-lg border-2 transition-all text-center relative ${
                                                 formData.voiceId === voice.id
                                                     ? 'border-purple-600 bg-purple-50'
                                                     : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -482,10 +617,14 @@ if (loading) {
                                             <p className="font-semibold text-sm text-gray-900">{voice.name}</p>
                                             <p className="text-xs text-gray-500 mt-1">{voice.accent}</p>
                                             <p className="text-xs text-gray-400">{voice.gender}</p>
+                                            <div className="mt-2 flex justify-center">
+                                                <PlayCircle className="w-4 h-4 text-gray-300 cursor-not-allowed" />
+                                            </div>
                                         </button>
                                     ))}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">Select the voice for your AI receptionist. Default is Charlotte (Australian female).</p>
+                                <p className="text-xs text-amber-600 mt-2">💬 Voice previews are available in production. In development, you can still select your preferred voice.</p>
                             </div>
                         </div>
 
