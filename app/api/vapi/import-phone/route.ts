@@ -9,6 +9,11 @@ function getSupabaseAdmin() {
     );
 }
 
+/**
+ * POST - Import a phone number from Twilio into VAPI and link it to the user's assistant.
+ * If the user already has a phone number, the old one is deleted from VAPI first (edit/replace flow).
+ * Also stores Twilio credentials in Supabase for future edits.
+ */
 export async function POST(request: Request) {
     try {
         const supabase = await createClient();
@@ -27,7 +32,7 @@ export async function POST(request: Request) {
         // Use admin client to read profile (bypasses RLS)
         const { data: profile } = await supabaseAdmin
             .from('profiles')
-            .select('vapi_assistant_id, vapi_phone_number, clinic_name')
+            .select('vapi_assistant_id, vapi_phone_number, vapi_phone_id, clinic_name')
             .eq('id', user.id)
             .maybeSingle();
 
@@ -35,17 +40,43 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Please save your Settings first to generate an Assistant before importing a phone number.' }, { status: 400 });
         }
 
-        if (profile?.vapi_phone_number) {
-            return NextResponse.json({ error: 'You already have a phone number.' }, { status: 400 });
-        }
-
         const body = await request.json();
         const { number, twilioAccountSid, twilioAuthToken } = body;
+
+        if (!number || !number.trim()) {
+            return NextResponse.json({ error: 'Phone number is required.' }, { status: 400 });
+        }
 
         if (!twilioAccountSid || !twilioAuthToken) {
             return NextResponse.json({ error: 'Twilio Account SID and Auth Token are required.' }, { status: 400 });
         }
 
+        // --- If user already has a phone number in VAPI, delete it first (edit/replace flow) ---
+        if (profile.vapi_phone_id) {
+            console.log('Replacing existing phone. Deleting old VAPI phone ID:', profile.vapi_phone_id);
+            try {
+                const deleteController = new AbortController();
+                const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
+                const deleteRes = await fetch(`https://api.vapi.ai/phone-number/${profile.vapi_phone_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${vapiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    signal: deleteController.signal
+                });
+                clearTimeout(deleteTimeout);
+
+                if (!deleteRes.ok) {
+                    const errText = await deleteRes.text();
+                    console.warn('Failed to delete old VAPI phone (continuing anyway):', errText);
+                }
+            } catch (delErr: any) {
+                console.warn('Error deleting old VAPI phone (continuing anyway):', delErr?.message);
+            }
+        }
+
+        // --- Import the new phone number to VAPI ---
         const payload: any = {
             provider: 'twilio',
             number: number,
@@ -56,7 +87,6 @@ export async function POST(request: Request) {
             assistantId: profile.vapi_assistant_id,
         };
 
-        // Import phone number to Vapi with timeout
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000);
 
@@ -93,13 +123,16 @@ export async function POST(request: Request) {
 
         const newPhone = await vapiRes.json();
         const importedNumber = newPhone.number; // e.g., +1XXXXXXXXXX
-        const vapiPhoneId = newPhone.id; // VAPI phone number ID for linking
+        const vapiPhoneId = newPhone.id; // VAPI phone number ID for future operations
 
-        // Update Supabase with the new number using ADMIN client (bypasses RLS)
+        // Update Supabase with the new number, phone ID, and Twilio credentials using ADMIN client (bypasses RLS)
         const { error: updateError } = await supabaseAdmin
             .from('profiles')
             .update({
                 vapi_phone_number: importedNumber,
+                vapi_phone_id: vapiPhoneId || null,
+                twilio_account_sid: twilioAccountSid,
+                twilio_auth_token: twilioAuthToken,
             })
             .eq('id', user.id);
 
@@ -108,7 +141,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `Phone imported to VAPI but failed to save to profile: ${updateError.message}` }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, phoneNumber: importedNumber });
+        return NextResponse.json({
+            success: true,
+            phoneNumber: importedNumber,
+            phoneId: vapiPhoneId,
+            twilioAccountSid: twilioAccountSid,
+        });
 
     } catch (e: unknown) {
         return NextResponse.json({ error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });

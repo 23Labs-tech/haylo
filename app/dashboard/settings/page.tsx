@@ -17,7 +17,10 @@ import {
     AlertCircle,
     PlayCircle,
     StopCircle,
-    Loader2
+    Loader2,
+    Trash2,
+    Edit3,
+    PhoneOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VOICE_OPTIONS } from '@/constants/voices';
@@ -60,6 +63,10 @@ export default function SettingsPage() {
     const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
     const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
     const [provisioningPhone, setProvisioningPhone] = useState(false);
+    const [deletingPhone, setDeletingPhone] = useState(false);
+    const [editingPhone, setEditingPhone] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [savedTwilioSid, setSavedTwilioSid] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -120,6 +127,9 @@ export default function SettingsPage() {
                     const phoneData = await phoneRes.json();
                     if (phoneData.phoneNumber) {
                         setPhoneNumber(phoneData.phoneNumber);
+                    }
+                    if (phoneData.twilioAccountSid) {
+                        setSavedTwilioSid(phoneData.twilioAccountSid);
                     }
                 }
             } catch (e) {
@@ -201,7 +211,7 @@ export default function SettingsPage() {
         });
     };
 
-    const handleImportNumber = async (e: React.FormEvent) => {
+    const handleImportNumber = async (e: React.FormEvent): Promise<boolean> => {
         e.preventDefault();
         setImporting(true);
 
@@ -221,13 +231,19 @@ export default function SettingsPage() {
 
             if (!response.ok) {
                 toast.error(`Error: ${data.error}`);
+                return false;
             } else {
                 setPhoneNumber(data.phoneNumber);
+                if (data.twilioAccountSid) {
+                    setSavedTwilioSid(data.twilioAccountSid);
+                }
                 toast.success('Phone number imported successfully!');
+                return true;
             }
         } catch (err) {
             console.error("Failed to import number:", err);
             toast.error("Network error. Please try again.");
+            return false;
         } finally {
             setImporting(false);
         }
@@ -262,6 +278,40 @@ export default function SettingsPage() {
         } finally {
             setProvisioningPhone(false);
         }
+    };
+
+    const handleDeleteNumber = async () => {
+        setDeletingPhone(true);
+        try {
+            const response = await fetch('/api/vapi/phone', {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                toast.error(`Error: ${data.error}`);
+            } else {
+                setPhoneNumber(null);
+                setSavedTwilioSid(null);
+                setShowDeleteConfirm(false);
+                setImportData({ number: '', twilioAccountSid: '', twilioAuthToken: '' });
+                toast.success('Phone number deleted successfully.');
+            }
+        } catch (err) {
+            console.error('Failed to delete number:', err);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setDeletingPhone(false);
+        }
+    };
+
+    const handleStartEdit = () => {
+        setEditingPhone(true);
+        // Pre-fill saved Twilio SID so user doesn't have to re-enter it
+        setImportData({
+            number: '',
+            twilioAccountSid: savedTwilioSid || '',
+            twilioAuthToken: ''
+        });
     };
 
     const validateForm = () => {
@@ -360,36 +410,113 @@ if (loading) {
                 </div>
             )}
 
-            {/* Inbound Phone Number Section — only shown after assistant is created */}
-            {hasAssistant && <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Inbound Phone Number Section — always visible */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-green-600" />
                         <h2 className="text-lg font-bold text-gray-900">Inbound Phone Number</h2>
                     </div>
+                    {phoneNumber && (
+                        <span className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">Connected</span>
+                    )}
                 </div>
 
-                {phoneNumber ? (
-                    <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <p className="text-sm font-semibold text-gray-700">Dedicated AI Phone Number</p>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Your patients can call this number to speak directly with your AI Assistant.
-                            </p>
+                {!hasAssistant ? (
+                    /* No assistant yet — prompt user to save settings first */
+                    <div className="p-6">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-semibold text-amber-900">Save your settings first</p>
+                                <p className="text-sm text-amber-800 mt-1">
+                                    Fill in your clinic profile and AI receptionist details below and click <strong>Save Settings</strong>. Once your AI assistant is created, you can import your Twilio phone number here.
+                                </p>
+                            </div>
                         </div>
-                        <div className="px-4 py-2 bg-green-50 rounded-lg border border-green-100 font-mono text-green-700 font-bold text-lg">
-                            {phoneNumber}
+                    </div>
+                ) : phoneNumber && !editingPhone ? (
+                    <div className="p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm font-semibold text-gray-700">Dedicated AI Phone Number</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Your patients can call this number to speak directly with your AI Assistant.
+                                </p>
+                                {savedTwilioSid && (
+                                    <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                        <Smartphone className="w-3 h-3" />
+                                        Connected via Twilio &middot; Account: {savedTwilioSid.substring(0, 8)}...{savedTwilioSid.slice(-4)}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="px-4 py-2 bg-green-50 rounded-lg border border-green-100 font-mono text-green-700 font-bold text-lg">
+                                {phoneNumber}
+                            </div>
+                        </div>
+
+                        {/* Edit & Delete Buttons */}
+                        <div className="mt-5 pt-4 border-t border-gray-100 flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={handleStartEdit}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                <Edit3 className="w-4 h-4" />
+                                Change Number
+                            </button>
+                            {!showDeleteConfirm ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete Number
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg border border-red-200">
+                                    <PhoneOff className="w-4 h-4 text-red-500" />
+                                    <span className="text-sm text-red-700 font-medium">Are you sure?</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteNumber}
+                                        disabled={deletingPhone}
+                                        className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                    >
+                                        {deletingPhone ? 'Deleting...' : 'Yes, Delete'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ) : (
                     <div className="p-6">
+                        {editingPhone && phoneNumber && (
+                            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-amber-800">Replacing current number: <span className="font-mono">{phoneNumber}</span></p>
+                                    <p className="text-xs text-amber-700 mt-1">The old number will be removed from your AI assistant when you import the new one.</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                            <h3 className="text-base font-bold text-gray-900 mb-3">Import Phone Number from Twilio</h3>
+                            <h3 className="text-base font-bold text-gray-900 mb-3">
+                                {editingPhone ? 'Import New Phone Number from Twilio' : 'Import Phone Number from Twilio'}
+                            </h3>
                             <p className="text-sm text-gray-600 mb-6">
-                                To connect an Australian phone number, you'll need a Twilio account with an Australian number already purchased. Enter your Twilio credentials below to connect it to your AI receptionist.
+                                To connect a phone number, you'll need a Twilio account with a number already purchased. Enter your Twilio credentials below to connect it to your AI receptionist.
                             </p>
 
-                            <form onSubmit={handleImportNumber} className="space-y-5">
+                            <form onSubmit={(e) => { handleImportNumber(e).then((success) => { if (success) setEditingPhone(false); }); }} className="space-y-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div className="space-y-2 md:col-span-2">
                                         <label className="text-sm font-semibold text-gray-700">Phone Number to Import</label>
@@ -428,67 +555,29 @@ if (loading) {
                                     </div>
                                 </div>
 
-                                <div className="pt-2">
+                                <div className="pt-2 flex gap-3">
                                     <button
                                         type="submit"
                                         disabled={importing}
-                                        className="w-full px-6 py-2.5 bg-gray-900 hover:bg-black text-white rounded-lg shadow font-medium transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                                        className="flex-1 px-6 py-2.5 bg-gray-900 hover:bg-black text-white rounded-lg shadow font-medium transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                                     >
-                                        {importing ? 'Importing...' : 'Import from Twilio'}
+                                        {importing ? 'Importing...' : editingPhone ? 'Replace Number' : 'Import from Twilio'}
                                     </button>
+                                    {editingPhone && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingPhone(false)}
+                                            className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
                                 </div>
                             </form>
                         </div>
                     </div>
                 )}
-            </div>}
-
-            {/* Get New Phone Number Section */}
-            {hasAssistant && !phoneNumber && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4 flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-green-600" />
-                        <h2 className="text-lg font-bold text-gray-900">Provision a Phone Number</h2>
-                    </div>
-                    <div className="p-6">
-                        <p className="text-sm text-gray-600 mb-4">
-                            Get a new dedicated phone number for your AI receptionist to answer calls.
-                        </p>
-                        <form onSubmit={handleGetNewNumber} className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700">Area Code</label>
-                                <input
-                                    type="text"
-                                    value={areaCode}
-                                    onChange={(e) => setAreaCode(e.target.value)}
-                                    placeholder="e.g. 415"
-                                    minLength={3}
-                                    maxLength={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow outline-none text-gray-900"
-                                />
-                                <p className="text-xs text-gray-500">Enter a 3-digit area code (e.g., 020 for Sydney, 415 for San Francisco).</p>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={provisioningPhone}
-                                className="w-full px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow font-medium transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
-                            >
-                                {provisioningPhone ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Provisioning...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Phone className="w-4 h-4" />
-                                        Get New Number
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+            </div>
 
             <form onSubmit={handleSave} className="space-y-8">
                 {/* Clinic Profile Section */}

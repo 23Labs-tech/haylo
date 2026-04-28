@@ -22,13 +22,15 @@ export async function GET(request: Request) {
         // Use admin client to read profile (bypasses RLS)
         const { data: profile } = await supabaseAdmin
             .from('profiles')
-            .select('vapi_assistant_id, vapi_phone_number')
+            .select('vapi_assistant_id, vapi_phone_number, vapi_phone_id, twilio_account_sid')
             .eq('id', user.id)
             .maybeSingle();
 
         return NextResponse.json({
             phoneNumber: profile?.vapi_phone_number || null,
-            assistantId: profile?.vapi_assistant_id || null
+            phoneId: profile?.vapi_phone_id || null,
+            assistantId: profile?.vapi_assistant_id || null,
+            twilioAccountSid: profile?.twilio_account_sid || null,
         });
 
     } catch (e: any) {
@@ -114,6 +116,8 @@ export async function POST(request: Request) {
 
         console.log('Vapi response:', JSON.stringify(vapiData, null, 2));
         const phoneNumber = vapiData.phoneNumber || vapiData.number || vapiData.inboundPhoneNumber;
+        const vapiPhoneId = vapiData.id; // Store the VAPI phone number ID for future operations
+
         if (!phoneNumber) {
             console.error('Phone number not found in response. Full response:', vapiData);
             return NextResponse.json({
@@ -121,10 +125,13 @@ export async function POST(request: Request) {
             }, { status: 500 });
         }
 
-        // Save the phone number to Supabase
+        // Save the phone number and VAPI phone ID to Supabase
         const { error: updateError } = await supabaseAdmin
             .from('profiles')
-            .update({ vapi_phone_number: phoneNumber })
+            .update({
+                vapi_phone_number: phoneNumber,
+                vapi_phone_id: vapiPhoneId || null
+            })
             .eq('id', user.id);
 
         if (updateError) {
@@ -135,7 +142,7 @@ export async function POST(request: Request) {
         }
 
         console.log('Successfully purchased phone number:', phoneNumber);
-        return NextResponse.json({ phoneNumber });
+        return NextResponse.json({ phoneNumber, phoneId: vapiPhoneId });
 
     } catch (e: any) {
         console.error('Phone purchase error:', e);
@@ -143,3 +150,82 @@ export async function POST(request: Request) {
     }
 }
 
+/**
+ * DELETE - Remove the phone number from VAPI and clear it + Twilio creds from Supabase
+ */
+export async function DELETE(request: Request) {
+    try {
+        const supabase = await createClient();
+        const supabaseAdmin = getSupabaseAdmin();
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const vapiKey = process.env.VAPI_PRIVATE_KEY;
+        if (!vapiKey) {
+            return NextResponse.json({ error: 'Server misconfiguration: VAPI private key is missing.' }, { status: 500 });
+        }
+
+        // Get the user's current phone ID from Supabase
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('vapi_phone_number, vapi_phone_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (!profile?.vapi_phone_number) {
+            return NextResponse.json({ error: 'No phone number to delete.' }, { status: 400 });
+        }
+
+        // If we have a VAPI phone ID, delete from VAPI first
+        if (profile.vapi_phone_id) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15000);
+
+            try {
+                const vapiRes = await fetch(`https://api.vapi.ai/phone-number/${profile.vapi_phone_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${vapiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+
+                if (!vapiRes.ok) {
+                    const errText = await vapiRes.text();
+                    console.error('VAPI Phone Delete Error:', errText);
+                    // Continue to clear from Supabase even if VAPI fails (phone may already be removed)
+                }
+            } catch (fetchErr: any) {
+                console.error('VAPI delete fetch error:', fetchErr?.message);
+                // Continue to clear from Supabase even if VAPI request fails
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+
+        // Clear the phone number AND Twilio credentials from Supabase
+        const { error: updateError } = await supabaseAdmin
+            .from('profiles')
+            .update({
+                vapi_phone_number: null,
+                vapi_phone_id: null,
+                twilio_account_sid: null,
+                twilio_auth_token: null,
+            })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Failed to clear phone number from Supabase:', updateError);
+            return NextResponse.json({ error: `Failed to remove phone number: ${updateError.message}` }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, message: 'Phone number deleted successfully.' });
+
+    } catch (e: unknown) {
+        return NextResponse.json({ error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });
+    }
+}
