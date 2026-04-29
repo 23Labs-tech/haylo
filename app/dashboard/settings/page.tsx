@@ -316,7 +316,7 @@ export default function SettingsPage() {
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
-        const requiredFields = ['clinicName', 'location', 'botName', 'greeting', 'hours', 'knowledgeBase', 'adminEmail', 'adminPhone', 'customPrompt'];
+        const requiredFields = ['clinicName', 'location', 'botName', 'greeting', 'hours', 'knowledgeBase', 'adminEmail', 'adminPhone'];
 
         requiredFields.forEach(field => {
             if (!formData[field as keyof typeof formData] || (formData[field as keyof typeof formData] as string).trim() === '') {

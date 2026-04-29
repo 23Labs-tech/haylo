@@ -112,7 +112,7 @@ export async function POST(request: Request) {
         const { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt, aiModel, voiceId } = await request.json();
 
         // Validate all required fields
-        const requiredFields = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting, customPrompt };
+        const requiredFields = { botName, clinicName, location, knowledgeBase, hours, adminEmail, adminPhone, greeting };
         for (const [field, value] of Object.entries(requiredFields)) {
             if (!value || (typeof value === 'string' && value.trim() === '')) {
                 return NextResponse.json({ error: `${field} is required and cannot be empty.` }, { status: 400 });
