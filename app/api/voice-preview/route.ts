@@ -86,7 +86,7 @@ export async function GET(request: Request) {
         const frequency = frequencyMap[voice.name] || 440; // Default to A4
         const audioBuffer = generateToneWav(frequency, 500);
 
-        return new NextResponse(audioBuffer, {
+        return new NextResponse(new Uint8Array(audioBuffer), {
             headers: {
                 'Content-Type': 'audio/wav',
                 'Content-Length': audioBuffer.length.toString(),
