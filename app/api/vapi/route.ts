@@ -265,6 +265,11 @@ IMPORTANT RULES:
             const newAssistant = await vapiCreateRes.json();
             assistantId = newAssistant.id; // Grab the newly created ID
 
+            if (!assistantId) {
+                console.error('VAPI returned success but no assistant ID in response:', JSON.stringify(newAssistant));
+                return NextResponse.json({ error: 'VAPI created an assistant but returned no ID. Please try again.' }, { status: 500 });
+            }
+
             // Instantly link this new bot directly to their Supabase profile using ADMIN client!
             const { error: updateError } = await supabaseAdmin
                 .from('profiles')
@@ -277,6 +282,20 @@ IMPORTANT RULES:
             if (updateError) {
                 console.error('Failed to link new Assistant ID to profile:', updateError);
                 return NextResponse.json({ error: `Assistant created but failed to save ID: ${updateError.message}` }, { status: 500 });
+            }
+
+            // VERIFY the assistant ID was actually persisted (Supabase silently ignores unknown columns)
+            const { data: verifyProfile } = await supabaseAdmin
+                .from('profiles')
+                .select('vapi_assistant_id')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (!verifyProfile?.vapi_assistant_id) {
+                console.error('CRITICAL: vapi_assistant_id was not persisted! The column may not exist in the profiles table. Run the ensure_profiles_columns.sql migration.');
+                return NextResponse.json({ 
+                    error: 'Database schema error: the vapi_assistant_id column may not exist. Please contact support.' 
+                }, { status: 500 });
             }
 
         } else {
