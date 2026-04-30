@@ -5,6 +5,9 @@ import { AI_MODELS, DEFAULT_AI_MODEL } from '@/constants/models';
 import OpenAI from 'openai';
 import { VAPI_REFINEMENT_SYSTEM_PROMPT } from '@/constants/vapiPromptingGuidelines';
 
+// Allow up to 60 seconds for this route (OpenAI refinement + VAPI create/update)
+export const maxDuration = 60;
+
 // Admin client that bypasses RLS for profile updates
 function getSupabaseAdmin() {
     return createSupabaseClient(
@@ -164,12 +167,15 @@ IMPORTANT RULES:
         }
 
         // Refine the prompt with OpenAI to follow Vapi best practices
+        // Uses a 12-second timeout so we don't hang the entire save flow
         let prompt = promptWithOverrides;
         const openaiKey = process.env.OPENAI_API_KEY;
         if (openaiKey) {
             try {
                 const openai = new OpenAI({ apiKey: openaiKey });
-                const completion = await openai.chat.completions.create({
+                
+                // Race the OpenAI call against a 12-second timeout
+                const refinementPromise = openai.chat.completions.create({
                     model: 'gpt-4o-mini',
                     temperature: 0.3,
                     max_tokens: 2000,
@@ -184,9 +190,17 @@ IMPORTANT RULES:
                         }
                     ]
                 });
-                const refinedContent = completion.choices[0]?.message?.content?.trim();
-                if (refinedContent) {
-                    prompt = refinedContent;
+                
+                const timeoutPromise = new Promise<null>((_, reject) =>
+                    setTimeout(() => reject(new Error('OpenAI refinement timed out after 12s')), 12000)
+                );
+                
+                const completion = await Promise.race([refinementPromise, timeoutPromise]);
+                if (completion) {
+                    const refinedContent = (completion as any).choices?.[0]?.message?.content?.trim();
+                    if (refinedContent) {
+                        prompt = refinedContent;
+                    }
                 }
             } catch (openaiError: any) {
                 console.error('OpenAI refinement error:', openaiError?.message);

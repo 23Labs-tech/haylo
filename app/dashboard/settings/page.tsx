@@ -69,6 +69,41 @@ export default function SettingsPage() {
     const [savedTwilioSid, setSavedTwilioSid] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    // Helper: Apply profile data to form state (used on initial load and after session refresh retry)
+    const applyProfileData = (profile: any, userEmail: string) => {
+        // Detect first-time user (no settings_json and no vapi_assistant_id)
+        if (!profile.settings_json && !profile.vapi_assistant_id) {
+            setIsFirstTime(true);
+        }
+
+        if (profile.vapi_assistant_id) {
+            setHasAssistant(true);
+        }
+
+        // If settings_json exists, parse it and populate the form
+        if (profile.settings_json) {
+            try {
+                const savedSettings = typeof profile.settings_json === 'string'
+                    ? JSON.parse(profile.settings_json)
+                    : profile.settings_json;
+                setFormData(prev => ({
+                    ...prev,
+                    ...savedSettings,
+                    // Make sure adminEmail is set from session if not in settings
+                    adminEmail: savedSettings.adminEmail || prev.adminEmail || userEmail,
+                    voiceId: savedSettings.voiceId || prev.voiceId
+                }));
+            } catch (e) {
+                console.error('Failed to parse settings_json');
+            }
+        }
+
+        // Also grab phone number from the profile directly
+        if (profile.vapi_phone_number) {
+            setPhoneNumber(profile.vapi_phone_number);
+        }
+    };
+
     useEffect(() => {
         const fetchProfileAndPhone = async () => {
             try {
@@ -78,6 +113,13 @@ export default function SettingsPage() {
                 const { data: { session } } = await supabase.auth.getSession();
                 const userEmail = session?.user?.email || '';
 
+                // If no session at all, redirect to login immediately
+                if (!session) {
+                    console.warn('No active session found, redirecting to login...');
+                    window.location.href = '/login';
+                    return;
+                }
+
                 // If we have a user email, pre-fill adminEmail
                 if (userEmail) {
                     setFormData(prev => ({ ...prev, adminEmail: prev.adminEmail || userEmail }));
@@ -85,40 +127,32 @@ export default function SettingsPage() {
 
                 // 1. Fetch user profile + settings from Supabase via our API
                 const profileRes = await fetch('/api/vapi');
-                if (profileRes.ok) {
+
+                // Handle expired session - try to refresh, then redirect if still failing
+                if (profileRes.status === 401) {
+                    console.warn('API returned 401, attempting session refresh...');
+                    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+                    if (refreshError || !refreshData.session) {
+                        console.error('Session refresh failed, redirecting to login');
+                        toast.error('Session expired. Please log in again.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    // Retry the fetch after refresh
+                    const retryRes = await fetch('/api/vapi');
+                    if (retryRes.status === 401) {
+                        console.error('Still unauthorized after refresh, redirecting to login');
+                        toast.error('Session expired. Please log in again.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    if (retryRes.ok) {
+                        const profile = await retryRes.json();
+                        applyProfileData(profile, userEmail);
+                    }
+                } else if (profileRes.ok) {
                     const profile = await profileRes.json();
-
-                    // Detect first-time user (no settings_json and no vapi_assistant_id)
-                    if (!profile.settings_json && !profile.vapi_assistant_id) {
-                        setIsFirstTime(true);
-                    }
-
-                    if (profile.vapi_assistant_id) {
-                        setHasAssistant(true);
-                    }
-
-                    // If settings_json exists, parse it and populate the form
-                    if (profile.settings_json) {
-                        try {
-                            const savedSettings = typeof profile.settings_json === 'string'
-                                ? JSON.parse(profile.settings_json)
-                                : profile.settings_json;
-                            setFormData(prev => ({
-                                ...prev,
-                                ...savedSettings,
-                                // Make sure adminEmail is set from session if not in settings
-                                adminEmail: savedSettings.adminEmail || prev.adminEmail || userEmail,
-                                voiceId: savedSettings.voiceId || prev.voiceId
-                            }));
-                        } catch (e) {
-                            console.error('Failed to parse settings_json');
-                        }
-                    }
-
-                    // Also grab phone number from the profile directly
-                    if (profile.vapi_phone_number) {
-                        setPhoneNumber(profile.vapi_phone_number);
-                    }
+                    applyProfileData(profile, userEmail);
                 }
 
                 // 2. Also fetch phone number from the dedicated phone endpoint as fallback
@@ -133,7 +167,7 @@ export default function SettingsPage() {
                     }
                 }
             } catch (e) {
-                console.error('Failed to fetch profile settings');
+                console.error('Failed to fetch profile settings:', e);
             } finally {
                 setLoading(false);
             }
@@ -338,6 +372,10 @@ export default function SettingsPage() {
 
         setSaving(true);
 
+        // 45-second timeout so the button never gets permanently stuck
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 45000);
+
         try {
             // Send the new settings to our secure Next.js Backend API
             const response = await fetch('/api/vapi', {
@@ -357,23 +395,47 @@ export default function SettingsPage() {
                     customPrompt: formData.customPrompt,
                     aiModel: formData.aiModel,
                     voiceId: formData.voiceId
-                })
+                }),
+                signal: controller.signal
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Failed to save settings:', errorData.error);
-                toast.error(`Error saving settings: ${errorData.error}`);
+                // Session expired - redirect to login
+                if (response.status === 401) {
+                    toast.error('Session expired. Please log in again.');
+                    window.location.href = '/login';
+                    return;
+                }
+                // Handle both JSON and non-JSON error responses (e.g. Vercel timeout HTML page)
+                let errorMessage = `Server error (${response.status})`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch {
+                    // Response wasn't JSON (e.g., Vercel timeout returns HTML)
+                    const text = await response.text();
+                    console.error('Non-JSON error response:', text.substring(0, 200));
+                    if (response.status === 504) {
+                        errorMessage = 'Request timed out. Please try again.';
+                    }
+                }
+                console.error('Failed to save settings:', errorMessage);
+                toast.error(`Error saving settings: ${errorMessage}`);
             } else {
                 setSaved(true);
                 setIsFirstTime(false);
                 setHasAssistant(true);
                 toast.success('Settings saved successfully!');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to call internal API:", err);
-            toast.error("Network error. Please try again.");
+            if (err?.name === 'AbortError') {
+                toast.error("Save request timed out. Please try again.");
+            } else {
+                toast.error("Network error. Please try again.");
+            }
         } finally {
+            clearTimeout(timeout);
             setSaving(false);
             setTimeout(() => setSaved(false), 3000);
         }

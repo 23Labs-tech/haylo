@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+// Allow up to 30 seconds for this route (VAPI phone import)
+export const maxDuration = 30;
+
 function getSupabaseAdmin() {
     return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
