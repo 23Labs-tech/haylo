@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter, Urbanist } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${urbanist.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <Toaster position="top-center" />
+        <Toaster position="top-center" richColors />
         <div className="bg-white lg:bg-gradient-to-br lg:from-[#C782F9]/20 lg:via-[#fcfaff] lg:to-[#f3ebfa]/40">
           {children}
         </div>
