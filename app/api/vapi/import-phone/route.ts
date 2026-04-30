@@ -121,7 +121,73 @@ export async function POST(request: Request) {
             try {
                 const errorObj = JSON.parse(err);
                 const errorMessage = errorObj.message || errorObj.error?.message || 'Failed to import phone number. Check your credentials.';
-                return NextResponse.json({ error: errorMessage }, { status: 500 });
+
+                // --- Handle "Existing Phone Number" duplicate error ---
+                // VAPI returns: "Existing Phone Number <UUID> Has Identical 'twilioAccountSid' ... and 'number' ..."
+                // Extract the existing phone UUID, delete it from VAPI, and retry the import.
+                const duplicateMatch = errorMessage.match(/Existing Phone Number\s+([0-9a-f-]{36})\s+Has Identical/i);
+                if (duplicateMatch) {
+                    const existingPhoneId = duplicateMatch[1];
+                    console.log('Detected duplicate phone in VAPI. Deleting existing phone ID:', existingPhoneId);
+
+                    try {
+                        const delController = new AbortController();
+                        const delTimeout = setTimeout(() => delController.abort(), 25000);
+                        const delRes = await fetch(`https://api.vapi.ai/phone-number/${existingPhoneId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${vapiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            signal: delController.signal
+                        });
+                        clearTimeout(delTimeout);
+
+                        if (!delRes.ok) {
+                            const delErrText = await delRes.text();
+                            console.error('Failed to delete duplicate VAPI phone:', delErrText);
+                            return NextResponse.json({ error: `Phone number already exists in VAPI and could not be removed automatically. Please delete it from the VAPI dashboard first.` }, { status: 500 });
+                        }
+
+                        console.log('Successfully deleted duplicate phone from VAPI. Retrying import...');
+
+                        // Retry the import after deleting the duplicate
+                        const retryController = new AbortController();
+                        const retryTimeout = setTimeout(() => retryController.abort(), 25000);
+                        let retryRes;
+                        try {
+                            retryRes = await fetch(`https://api.vapi.ai/phone-number`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${vapiKey}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(payload),
+                                signal: retryController.signal
+                            });
+                        } catch (retryFetchErr: any) {
+                            clearTimeout(retryTimeout);
+                            const msg = retryFetchErr?.name === 'AbortError' ? 'VAPI retry request timed out.' : 'Failed to reach VAPI on retry.';
+                            return NextResponse.json({ error: msg }, { status: 500 });
+                        } finally {
+                            clearTimeout(retryTimeout);
+                        }
+
+                        if (!retryRes.ok) {
+                            const retryErr = await retryRes.text();
+                            console.error('VAPI Phone Import Retry Error:', retryErr);
+                            return NextResponse.json({ error: `Retry failed after removing duplicate: ${retryErr}` }, { status: 500 });
+                        }
+
+                        // Retry succeeded — use the retry response as the new phone
+                        vapiRes = retryRes;
+                    } catch (delFetchErr: any) {
+                        console.error('Error deleting duplicate VAPI phone:', delFetchErr?.message);
+                        return NextResponse.json({ error: `Phone number already exists in VAPI and cleanup failed. Please try again.` }, { status: 500 });
+                    }
+                } else {
+                    return NextResponse.json({ error: errorMessage }, { status: 500 });
+                }
             } catch (e) {
                 // If it's not JSON, it could be a Vercel 504 Gateway Timeout HTML page
                 if (vapiRes.status === 504) {
