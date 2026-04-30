@@ -59,7 +59,8 @@ export async function POST(request: Request) {
             console.log('Replacing existing phone. Deleting old VAPI phone ID:', profile.vapi_phone_id);
             try {
                 const deleteController = new AbortController();
-                const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
+                // Increased to 25s to avoid premature timeouts before Vercel limits out
+                const deleteTimeout = setTimeout(() => deleteController.abort(), 25000);
                 const deleteRes = await fetch(`https://api.vapi.ai/phone-number/${profile.vapi_phone_id}`, {
                     method: 'DELETE',
                     headers: {
@@ -91,7 +92,8 @@ export async function POST(request: Request) {
         };
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
+        // Increased to 25s to give Vapi enough time to provision Twilio numbers
+        const timeout = setTimeout(() => controller.abort(), 25000);
 
         let vapiRes;
         try {
@@ -118,9 +120,14 @@ export async function POST(request: Request) {
 
             try {
                 const errorObj = JSON.parse(err);
-                return NextResponse.json({ error: errorObj.message || 'Failed to import phone number. Check your credentials.' }, { status: 500 });
+                const errorMessage = errorObj.message || errorObj.error?.message || 'Failed to import phone number. Check your credentials.';
+                return NextResponse.json({ error: errorMessage }, { status: 500 });
             } catch (e) {
-                return NextResponse.json({ error: 'Failed to import phone number. Please check your credentials and try again.' }, { status: 500 });
+                // If it's not JSON, it could be a Vercel 504 Gateway Timeout HTML page
+                if (vapiRes.status === 504) {
+                    return NextResponse.json({ error: 'Request timed out waiting for Vapi. Please try again.' }, { status: 504 });
+                }
+                return NextResponse.json({ error: `Failed to import phone number. Server returned status ${vapiRes.status}.` }, { status: 500 });
             }
         }
 
